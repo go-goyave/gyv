@@ -1,3 +1,7 @@
+run:
+  skip-dirs:
+    - .github
+
 linters-settings:
   gocyclo:
     min-complexity: 15
@@ -5,6 +9,11 @@ linters-settings:
     simplify: true
   misspell:
     locale: US
+  govet:
+    disable:
+      - shadow
+      - nilness
+    enable-all: true
 
 linters:
   enable:
@@ -13,7 +22,8 @@ linters:
     - gocyclo
     - misspell
     - bodyclose
-    - fieldalignment
+    - govet
+  disable:
     - errcheck
   disable-all: false
   fast: false
