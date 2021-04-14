@@ -23,6 +23,7 @@ linters:
     - misspell
     - bodyclose
     - govet
+    - deadcode
   disable-all: false
   fast: false
 
