@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Command is a interface which represents the actions possible for the commands
 type Command interface {
 	Execute() error
 	Validate() error
@@ -13,6 +14,9 @@ type Command interface {
 	BuildCobraCommand() *cobra.Command
 }
 
+// GenerateRunFunc is a function which is used by all commands to determine which behavior to take
+// If all required flags are set, the main process start
+// Otherwise a survey is launched for allow the user to inject the data
 func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 	return func(*cobra.Command, []string) error {
 		if !c.UsedFlags() {

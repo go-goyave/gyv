@@ -20,16 +20,18 @@ const (
 	defaultZipFileName = "goyave_template.zip"
 )
 
-type CreateProject struct {
+// ProjectData is a structure which represents the data injected by the user to generate a goyave project
+type ProjectData struct {
 	GoyaveVersion string
 	ModuleName    string
 }
 
-func (c *CreateProject) BuildCobraCommand() *cobra.Command {
+// BuildCobraCommand is a function used to build a cobra command
+func (c *ProjectData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
-		Short: "Create goyave project",
-		Long: `Command for create goyave project with the help of a survey.
+		Short: "Create a goyave project",
+		Long: `Command to create goyave project with the help of a survey.
 Some go and git commands are used for create the project, go and git must be installed and definded in your environment.
 The flags --module-name and --goyave-version are required.
 In the case where you don't use flags, a survey will be start to allow you to inject the data.`,
@@ -41,7 +43,8 @@ In the case where you don't use flags, a survey will be start to allow you to in
 	return cmd
 }
 
-func (c *CreateProject) BuildSurvey() ([]*survey.Question, error) {
+// BuildSurvey is a function used to build a survey
+func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 	tags, err := git.GetAllTags()
 	if err != nil {
 		return nil, err
@@ -75,17 +78,8 @@ func (c *CreateProject) BuildSurvey() ([]*survey.Question, error) {
 
 }
 
-func getTagsName(tags []git.GitTag) []string {
-	var tagsName []string
-
-	for _, tag := range tags {
-		tagsName = append(tagsName, tag.Name)
-	}
-
-	return tagsName
-}
-
-func (c *CreateProject) Execute() error {
+// Execute is the core function of the command
+func (c *ProjectData) Execute() error {
 	tags, err := git.GetAllTags()
 	if err != nil {
 		return fmt.Errorf("❌ %s", err.Error())
@@ -118,7 +112,7 @@ func (c *CreateProject) Execute() error {
 		return fmt.Errorf("❌ %s", err.Error())
 	}
 
-	if err := git.GitInit(projectName); err != nil {
+	if err := git.ProjectGitInit(projectName); err != nil {
 		return fmt.Errorf("❌ %s", err.Error())
 	}
 
@@ -142,7 +136,8 @@ func (c *CreateProject) Execute() error {
 	return nil
 }
 
-func (c *CreateProject) Validate() error {
+// Validate is a function which check if required flags are definded
+func (c *ProjectData) Validate() error {
 	if c.GoyaveVersion == "" || c.ModuleName == "" {
 		return errors.New("required flag(s) \"goyave-version\" and \"module-name\" aren't set")
 	}
@@ -150,7 +145,8 @@ func (c *CreateProject) Validate() error {
 	return nil
 }
 
-func (c *CreateProject) UsedFlags() bool {
+// UsedFlags is a function which check if flags are used
+func (c *ProjectData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--module-name" || arg == "-n" {
 			return true
@@ -164,7 +160,7 @@ func (c *CreateProject) UsedFlags() bool {
 	return false
 }
 
-func (c *CreateProject) setFlags(flags *pflag.FlagSet) {
+func (c *ProjectData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModuleName,
 		"module-name",

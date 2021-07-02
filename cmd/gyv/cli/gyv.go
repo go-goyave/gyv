@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func BuildGyv() *cobra.Command {
+func buildGyv() *cobra.Command {
 	gyv := &cobra.Command{
 		Use:     "cli-sample",
 		Version: "0.1.0",
@@ -26,7 +26,8 @@ This tool work with all goyave versions.`,
 	return gyv
 }
 
+// Execute is a function which start the root command gyv
 func Execute() {
-	rootCommand := BuildGyv()
+	rootCommand := buildGyv()
 	_ = rootCommand.Execute()
 }

@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// ExtractZip is a function which unzip a zip file
 func ExtractZip(filename string, projectName string) ([]string, error) {
 	var filenames []string
 

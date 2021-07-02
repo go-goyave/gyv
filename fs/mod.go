@@ -17,9 +17,10 @@ const (
 	goModFilename = "go.mod"
 )
 
+// IsValidProject is a function which check if the directory is a goyave project
 func IsValidProject(projectPath string) error {
 	if projectPath == "" {
-		return SetRootWorkingDirectory()
+		return setRootWorkingDirectory()
 	}
 
 	isGoyaveProject, err := isGoyaveProject(projectPath)
@@ -34,7 +35,7 @@ func IsValidProject(projectPath string) error {
 	return nil
 }
 
-func SetRootWorkingDirectory() error {
+func setRootWorkingDirectory() error {
 	sep := string(os.PathSeparator)
 	context, err := os.Getwd()
 	if err != nil {
@@ -132,6 +133,7 @@ func getGoyaveUrls() []string {
 	return []string{"goyave.dev/goyave", "github.com/System-Glitch/goyave"}
 }
 
+// GetGoyaveVersion is a function which return the goyave version from a go.mod
 func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 	modfile, err := dataFromGoMod(projectPath)
 	if err != nil {
@@ -154,6 +156,7 @@ func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 	return nil, errors.New("The root isn't a goyave project")
 }
 
+// GetGoyavePath is a function which return goyave module path
 func GetGoyavePath(projectPath string) (*string, error) {
 	modfile, err := dataFromGoMod(projectPath)
 	if err != nil {

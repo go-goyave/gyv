@@ -9,22 +9,24 @@ import (
 	"strings"
 )
 
+// ProjectNameFromModuleName is a function which extract project name from a module name
 func ProjectNameFromModuleName(moduleName *string) string {
 	return strings.Split(*moduleName, "/")[bytes.Count([]byte(*moduleName), []byte("/"))]
 }
 
+// ReplaceAll is a function which replace all default module names or package names by injected values
 func ReplaceAll(projectName string, moduleName string) error {
-	if err := ReplaceProjectModuleName(projectName, moduleName); err != nil {
+	if err := replaceProjectModuleName(projectName, moduleName); err != nil {
 		return err
 	}
-	if err := ReplaceGoModPackageName(projectName, moduleName); err != nil {
+	if err := replaceGoModPackageName(projectName, moduleName); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func ReplaceProjectModuleName(projectName string, moduleName string) error {
+func replaceProjectModuleName(projectName string, moduleName string) error {
 	return filepath.Walk(projectName, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -57,7 +59,7 @@ func defaultTemplateValues() []string {
 	return []string{"goyave.dev/template", "goyave_template"}
 }
 
-func ReplaceGoModPackageName(projectName string, moduleName string) error {
+func replaceGoModPackageName(projectName string, moduleName string) error {
 	goModPath := fmt.Sprintf(".%c%s%cgo.mod", os.PathSeparator, projectName, os.PathSeparator)
 	goModBytes, err := ioutil.ReadFile(goModPath)
 	if err != nil {

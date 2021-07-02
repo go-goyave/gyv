@@ -9,7 +9,8 @@ import (
 	"github.com/Masterminds/semver"
 )
 
-type GitTag struct {
+// Tag is a struct which represent github api response
+type Tag struct {
 	Name       string `json:"name"`
 	ZipballURL string `json:"zipball_url"`
 	TarballURL string `json:"tarball_url"`
@@ -20,7 +21,7 @@ type GitTag struct {
 	NodeID string `json:"node_id"`
 }
 
-func (tag *GitTag) String() string {
+func (tag *Tag) String() string {
 	jsonValue, err := json.Marshal(tag)
 	if err != nil {
 		panic(err)
@@ -29,11 +30,12 @@ func (tag *GitTag) String() string {
 	return string(jsonValue)
 }
 
-func GetVersions(tags []GitTag) ([]*semver.Version, error) {
+// GetVersions is a function which convert Tag into semver Version
+func GetVersions(tags []Tag) ([]*semver.Version, error) {
 	var versions []*semver.Version
 
 	for _, tag := range tags {
-		version, err := tag.GetVersion()
+		version, err := tag.getVersion()
 		if err != nil {
 			return nil, err
 		}
@@ -44,24 +46,16 @@ func GetVersions(tags []GitTag) ([]*semver.Version, error) {
 	return versions, nil
 }
 
-func (tag *GitTag) GetVersion() (*semver.Version, error) {
+func (tag *Tag) getVersion() (*semver.Version, error) {
 	return semver.NewVersion(tag.Name)
 }
 
-func GetGitTagByName(tags []GitTag, version *semver.Version) *GitTag {
-	for _, tag := range tags {
-		if version.String() == tag.Name {
-			return &tag
-		}
-	}
-
-	return nil
-}
-
+// GetTopVersions is a function which only return all major and minor versions
+// Only the top patch version is taken
 func GetTopVersions(versions []*semver.Version) ([]*semver.Version, error) {
 	filteredVersions := versions[:1]
 	for _, version := range versions {
-		exist, err := MajorMinorExist(version, filteredVersions)
+		exist, err := majorMinorExist(version, filteredVersions)
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +82,7 @@ func GetTopVersions(versions []*semver.Version) ([]*semver.Version, error) {
 	return filteredVersions, nil
 }
 
-func MajorMinorExist(version *semver.Version, versions []*semver.Version) (bool, error) {
+func majorMinorExist(version *semver.Version, versions []*semver.Version) (bool, error) {
 	constraint, err := semver.NewConstraint(buildMajorMinorVersionString(version))
 	if err != nil {
 		return false, err
@@ -111,6 +105,7 @@ func buildMajorMinorVersionString(version *semver.Version) string {
 	return resultString
 }
 
+// VersionsToStrings is a function which convert semver Versions into a array of string
 func VersionsToStrings(versions []*semver.Version) []string {
 	var result []string
 
@@ -121,9 +116,10 @@ func VersionsToStrings(versions []*semver.Version) []string {
 	return result
 }
 
-func GetAllTags() ([]GitTag, error) {
+// GetAllTags is a function which return all goyave tags registered inside github api
+func GetAllTags() ([]Tag, error) {
 	goyaveTagsURL := "https://api.github.com/repos/go-goyave/template/tags"
-	bodyContent, link, err := GetHttpData(&goyaveTagsURL)
+	bodyContent, link, err := getHTTPData(&goyaveTagsURL)
 	if err != nil {
 		return nil, err
 	}
@@ -131,16 +127,16 @@ func GetAllTags() ([]GitTag, error) {
 	var responsesBytes [][]byte
 
 	responsesBytes = append(responsesBytes, bodyContent)
-	linkData, err := GetLinksData(responsesBytes, link)
+	linkData, err := getLinksData(responsesBytes, link)
 	if err != nil {
 		return nil, err
 	}
 
 	responsesBytes = append(responsesBytes, linkData...)
 
-	var tags []GitTag
+	var tags []Tag
 	for _, responseBytes := range responsesBytes {
-		var tagsResponse []GitTag
+		var tagsResponse []Tag
 		if err := json.Unmarshal(responseBytes, &tagsResponse); err != nil {
 			return nil, err
 		}
@@ -152,7 +148,8 @@ func GetAllTags() ([]GitTag, error) {
 	return tags, nil
 }
 
-func GetTagByName(name string, tags []GitTag) (*GitTag, error) {
+// GetTagByName is a search function whiwh return a tag from a string version
+func GetTagByName(name string, tags []Tag) (*Tag, error) {
 	toCheck, err := semver.NewVersion(name)
 	if err != nil {
 		return nil, err
@@ -177,7 +174,8 @@ func GetTagByName(name string, tags []GitTag) (*GitTag, error) {
 	return nil, fmt.Errorf("No tag found for: %s", name)
 }
 
-func GitInit(projectName string) error {
+// ProjectGitInit is a function which initialize a git project
+func ProjectGitInit(projectName string) error {
 	if _, err := exec.Command("git", "init", projectName).Output(); err != nil {
 		return err
 	}

@@ -13,11 +13,13 @@ import (
 	"github.com/tomnomnom/linkheader"
 )
 
+// HTTPClient is an abstraction of the default HTTP client
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 var (
+	// GitClient is the client config for HTTP request
 	GitClient HTTPClient
 )
 
@@ -25,20 +27,20 @@ func init() {
 	GitClient = &http.Client{Timeout: 30 * time.Second}
 }
 
-func GetLinksData(bodyList [][]byte, link *string) ([][]byte, error) {
+func getLinksData(bodyList [][]byte, link *string) ([][]byte, error) {
 	if link == nil {
 		return bodyList, nil
 	}
 
-	bytes, link, err := GetHttpData(link)
+	bytes, link, err := getHTTPData(link)
 	if err != nil {
 		return nil, err
 	}
 
-	return GetLinksData(append(bodyList, bytes), link)
+	return getLinksData(append(bodyList, bytes), link)
 }
 
-func GetHttpData(url *string) ([]byte, *string, error) {
+func getHTTPData(url *string) ([]byte, *string, error) {
 	request, err := http.NewRequest("GET", *url, nil)
 	if err != nil {
 		return nil, nil, err
@@ -64,7 +66,7 @@ func GetHttpData(url *string) ([]byte, *string, error) {
 		return nil, nil, err
 	}
 
-	nextPage := getNextPageUrl(strings.Join(response.Header.Values("Link"), ""))
+	nextPage := getNextPageURL(strings.Join(response.Header.Values("Link"), ""))
 
 	if nextPage != nil {
 		return bytes, nextPage, nil
@@ -74,7 +76,7 @@ func GetHttpData(url *string) ([]byte, *string, error) {
 
 }
 
-func getNextPageUrl(rawLinks string) *string {
+func getNextPageURL(rawLinks string) *string {
 	links := linkheader.Parse(rawLinks)
 
 	for _, link := range links {
@@ -86,6 +88,7 @@ func getNextPageUrl(rawLinks string) *string {
 	return nil
 }
 
+// DownloadFile is a function which download a file with a URL and new name for the downloaded file
 func DownloadFile(url string, filename string) error {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {

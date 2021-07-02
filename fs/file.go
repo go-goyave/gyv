@@ -8,6 +8,7 @@ import (
 	"github.com/Masterminds/semver"
 )
 
+// CreateResourceFile is a function which create a resource file from a stub
 func CreateResourceFile(path string, name string, data []byte) error {
 	var filePath string
 	if path == "" {
@@ -35,6 +36,7 @@ func CreateResourceFile(path string, name string, data []byte) error {
 	return nil
 }
 
+// CreateControllerPath is a function which generate the path to goyave controllers according to the version
 func CreateControllerPath(controllerName string, projectPath string) (*string, error) {
 	goyaveVersion, err := GetGoyaveVersion(projectPath)
 	if err != nil {
@@ -62,6 +64,7 @@ func CreateControllerPath(controllerName string, projectPath string) (*string, e
 	return &controllerPath, nil
 }
 
+// CreatePath is a function which create a directory and its parents if necessary
 func CreatePath(path string) error {
 	info, err := os.Stat(path)
 	if info != nil {
@@ -78,6 +81,7 @@ func CreatePath(path string) error {
 	return nil
 }
 
+// CreateMiddlewarePath is a function which generate the path to goyave middlewares according to the version
 func CreateMiddlewarePath(projectPath string) string {
 	if projectPath == "" {
 		return fmt.Sprintf("http%cmiddleware", os.PathSeparator)
@@ -86,6 +90,7 @@ func CreateMiddlewarePath(projectPath string) string {
 	return fmt.Sprintf("%s%chttp%cmiddleware", projectPath, os.PathSeparator, os.PathSeparator)
 }
 
+// CreateModelPath is a function which generate the path to goyave models according to the version
 func CreateModelPath(modelName string, projectPath string) (*string, error) {
 	goyaveVersion, err := GetGoyaveVersion(projectPath)
 	if err != nil {

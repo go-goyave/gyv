@@ -17,13 +17,18 @@ var stubFolder embed.FS
 
 const (
 	defaultStub = "default.go.stub"
-	Controller  = "embed/controller"
-	Middleware  = "embed/middleware"
-	Model       = "embed/model"
+	// Controller is the path to controller stubs
+	Controller = "embed/controller"
+	// Middleware is the path to middleware stubs
+	Middleware = "embed/middleware"
+	// Model is the path to model stubs
+	Model = "embed/model"
 )
 
+// Data represent the data to inject inside stub files
 type Data map[string]string
 
+// Load is a function to load a stub file with injected data
 func Load(name string, data Data) (*bytes.Buffer, error) {
 	template, err := template.ParseFS(stubFolder, name)
 	var writer bytes.Buffer
@@ -39,6 +44,7 @@ func Load(name string, data Data) (*bytes.Buffer, error) {
 	return &writer, nil
 }
 
+// GenerateStubVersionPath is a function which return the path to a stub according to a version
 func GenerateStubVersionPath(path string, version semver.Version) (*string, error) {
 	result := fmt.Sprintf("%s%c%s.go.stub", path, os.PathSeparator, "default")
 	lowerThan, err := semver.NewConstraint(fmt.Sprintf("<= %s", version.String()))

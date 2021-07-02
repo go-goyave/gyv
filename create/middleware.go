@@ -15,16 +15,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type CreateMiddleware struct {
+// MiddlewareData is a structure which represents the data injected by the user to generate a middleware
+type MiddlewareData struct {
 	MiddlewareName string
 	ProjectPath    string
 }
 
-func (c *CreateMiddleware) BuildCobraCommand() *cobra.Command {
+// BuildCobraCommand is a function used to build a cobra command
+func (c *MiddlewareData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "middleware",
-		Short: "Create goyave middleware",
-		Long: `Command for create goyave middleware with the help of a survey.
+		Short: "Create a goyave middleware",
+		Long: `Command to create goyave middleware with the help of a survey.
 Only the middleware-name flag is required. The project-path is optional.
 Is project-path is empty, the program going to search for a goyave project root.
 And for this, the program going to move up to the parent directory and check each time if this directory is a goyave project.
@@ -37,7 +39,8 @@ If any parents directories are goyave project, an error will be raised.`,
 	return cmd
 }
 
-func (c *CreateMiddleware) BuildSurvey() ([]*survey.Question, error) {
+// BuildSurvey is a function used to build a survey
+func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "middlewareName",
@@ -51,7 +54,8 @@ func (c *CreateMiddleware) BuildSurvey() ([]*survey.Question, error) {
 	}, nil
 }
 
-func (c *CreateMiddleware) Execute() error {
+// Execute is the core function of the command
+func (c *MiddlewareData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
 		return fmt.Errorf("❌ %s", err.Error())
 	}
@@ -91,7 +95,8 @@ func (c *CreateMiddleware) Execute() error {
 	return nil
 }
 
-func (c *CreateMiddleware) Validate() error {
+// Validate is a function which check if required flags are definded
+func (c *MiddlewareData) Validate() error {
 	if c.MiddlewareName == "" {
 		return errors.New("❌ required flag \"middleware-name\"")
 	}
@@ -99,7 +104,8 @@ func (c *CreateMiddleware) Validate() error {
 	return nil
 }
 
-func (c *CreateMiddleware) UsedFlags() bool {
+// UsedFlags is a function which check if flags are used
+func (c *MiddlewareData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--middleware-name" || arg == "-n" {
 			return true
@@ -109,7 +115,7 @@ func (c *CreateMiddleware) UsedFlags() bool {
 	return false
 }
 
-func (c *CreateMiddleware) setFlags(flags *pflag.FlagSet) {
+func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.MiddlewareName,
 		"middleware-name",

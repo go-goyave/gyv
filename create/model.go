@@ -15,20 +15,18 @@ import (
 	"github.com/spf13/pflag"
 )
 
-const (
-	defaultModName = "models"
-)
-
-type CreateModel struct {
+// ModelData is a structure which represents the data injected by the user to generate a model
+type ModelData struct {
 	ModelName   string
 	ProjectPath string
 }
 
-func (c *CreateModel) BuildCobraCommand() *cobra.Command {
+// BuildCobraCommand is a function used to build a cobra command
+func (c *ModelData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "model",
-		Short: "Create goyave model",
-		Long: `Command for create goyave model with the help of a survey.
+		Short: "Create a goyave model",
+		Long: `Command to create goyave model with the help of a survey.
 Only the model-name flag is required. The project-path is optional.
 Is project-path is empty, the program going to search for a goyave project root.
 And for this, the program going to move up to the parent directory and check each time if this directory is a goyave project.
@@ -41,7 +39,8 @@ If any parents directories are goyave project, an error will be raised.`,
 	return cmd
 }
 
-func (c *CreateModel) BuildSurvey() ([]*survey.Question, error) {
+// BuildSurvey is a function used to build a survey
+func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "modelName",
@@ -55,7 +54,8 @@ func (c *CreateModel) BuildSurvey() ([]*survey.Question, error) {
 	}, nil
 }
 
-func (c *CreateModel) Execute() error {
+// Execute is the core function of the command
+func (c *ModelData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
 		return fmt.Errorf("❌ %s", err.Error())
 	}
@@ -98,7 +98,8 @@ func (c *CreateModel) Execute() error {
 	return nil
 }
 
-func (c *CreateModel) Validate() error {
+// Validate is a function which check if required flags are definded
+func (c *ModelData) Validate() error {
 	if c.ModelName == "" {
 		return errors.New("❌ required flag \"model-name\"")
 	}
@@ -106,7 +107,8 @@ func (c *CreateModel) Validate() error {
 	return nil
 }
 
-func (c *CreateModel) UsedFlags() bool {
+// UsedFlags is a function which check if flags are used
+func (c *ModelData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--model-name" || arg == "-n" {
 			return true
@@ -116,7 +118,7 @@ func (c *CreateModel) UsedFlags() bool {
 	return false
 }
 
-func (c *CreateModel) setFlags(flags *pflag.FlagSet) {
+func (c *ModelData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModelName,
 		"model-name",
