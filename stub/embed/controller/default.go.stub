@@ -1,0 +1,10 @@
+package {{$.ControllerName}}
+
+import (
+	"{{$.GoyaveModVersion}}"
+	"net/http"
+)
+
+func Handler(response *goyave.Response, request *goyave.Request) {
+
+}

@@ -1,0 +1,14 @@
+package model
+
+import (
+	"{{$.GoyaveModVersion}}/database"
+	"github.com/jinzhu/gorm"
+)
+
+func init() {
+	database.RegisterModel(&{{$.ModelName}}{})
+}
+
+type {{$.ModelName}} struct {
+	ID uint `gorm:"primarykey"`
+}
