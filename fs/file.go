@@ -2,6 +2,7 @@ package fs
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 
@@ -116,4 +117,28 @@ func CreateModelPath(modelName string, projectPath string) (*string, error) {
 	}
 
 	return &path, nil
+}
+
+// CopyFile copy file from given source path to given destination path
+func CopyFile(source, destination string) error {
+	in, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+
+	out, err := os.Create(destination)
+	if err != nil {
+		_ = in.Close()
+		return err
+	}
+
+	_, err = io.Copy(out, in)
+	if err != nil {
+		_ = in.Close()
+		_ = out.Close()
+		return err
+	}
+
+	_ = in.Close()
+	return out.Close()
 }

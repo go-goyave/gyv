@@ -2,7 +2,6 @@ package model
 
 import (
 	"{{$.GoyaveModVersion}}/database"
-	"gorm.io/gorm"
 )
 
 func init() {

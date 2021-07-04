@@ -46,11 +46,8 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 			Validate: survey.Required,
 		},
 		{
-			Name: "projectPath",
-			Prompt: &survey.Input{
-				Message: "Project path",
-				Help:    "Leave empty for auto-detect",
-			},
+			Name:   "projectPath",
+			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil
 }
@@ -99,7 +96,7 @@ func (c *MiddlewareData) Execute() error {
 // Validate is a function which check if required flags are definded
 func (c *MiddlewareData) Validate() error {
 	if c.MiddlewareName == "" {
-		return errors.New("❌ required flag \"middleware-name\"")
+		return errors.New("❌ required flag \"name\"")
 	}
 
 	return nil
@@ -108,7 +105,7 @@ func (c *MiddlewareData) Validate() error {
 // UsedFlags is a function which check if flags are used
 func (c *MiddlewareData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
-		if arg == "--middleware-name" || arg == "-n" {
+		if arg == "--name" || arg == "-n" {
 			return true
 		}
 	}
@@ -119,7 +116,7 @@ func (c *MiddlewareData) UsedFlags() bool {
 func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.MiddlewareName,
-		"middleware-name",
+		"name",
 		"n",
 		"",
 		"The name of the middleware to generate",

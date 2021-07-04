@@ -125,8 +125,17 @@ func (c *ProjectData) Execute() error {
 	}
 
 	tidyCommand := exec.Command("go", "mod", "tidy")
-	tidyCommand.Dir = fmt.Sprintf("%s%c%s", currentWorkingDirectory, os.PathSeparator, projectName)
+	projectPath := fmt.Sprintf("%s%c%s", currentWorkingDirectory, os.PathSeparator, projectName)
+	tidyCommand.Dir = projectPath
 	if err := tidyCommand.Run(); err != nil {
+		return err
+	}
+
+	err = fs.CopyFile(
+		fmt.Sprintf("%s%c%s", projectPath, os.PathSeparator, "config.example.json"),
+		fmt.Sprintf("%s%c%s", projectPath, os.PathSeparator, "config.json"),
+	)
+	if err != nil {
 		return err
 	}
 

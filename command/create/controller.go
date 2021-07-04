@@ -46,11 +46,8 @@ func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 			Validate: survey.Required,
 		},
 		{
-			Name: "projectPath",
-			Prompt: &survey.Input{
-				Message: "Project path",
-				Help:    "Leave empty for auto-detect",
-			},
+			Name:   "projectPath",
+			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil
 }
@@ -106,7 +103,7 @@ func (c *ControllerData) Execute() error {
 // Validate checks if required flags are definded
 func (c *ControllerData) Validate() error {
 	if c.ControllerName == "" {
-		return errors.New("required flag(s) \"controller-name\"")
+		return errors.New("required flag(s) \"name\"")
 	}
 
 	return nil
@@ -117,7 +114,7 @@ func (c *ControllerData) UsedFlags() bool {
 	controllerNameCheck := false
 
 	for _, arg := range os.Args[1:] {
-		if arg == "--controller-name" || arg == "-n" {
+		if arg == "--name" || arg == "-n" {
 			controllerNameCheck = true
 		}
 	}
@@ -128,7 +125,7 @@ func (c *ControllerData) UsedFlags() bool {
 func (c *ControllerData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ControllerName,
-		"controller-name",
+		"name",
 		"n",
 		"",
 		"The name of the controller to generate",

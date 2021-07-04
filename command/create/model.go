@@ -46,11 +46,8 @@ func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 			Validate: survey.Required,
 		},
 		{
-			Name: "projectPath",
-			Prompt: &survey.Input{
-				Message: "Project path",
-				Help:    "Leave empty for auto-detect",
-			},
+			Name:   "projectPath",
+			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil
 }
@@ -102,7 +99,7 @@ func (c *ModelData) Execute() error {
 // Validate checks if required flags are definded
 func (c *ModelData) Validate() error {
 	if c.ModelName == "" {
-		return errors.New("❌ required flag \"model-name\"")
+		return errors.New("❌ required flag \"name\"")
 	}
 
 	return nil
@@ -111,7 +108,7 @@ func (c *ModelData) Validate() error {
 // UsedFlags checks if flags are used
 func (c *ModelData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
-		if arg == "--model-name" || arg == "-n" {
+		if arg == "--name" || arg == "-n" {
 			return true
 		}
 	}
@@ -122,7 +119,7 @@ func (c *ModelData) UsedFlags() bool {
 func (c *ModelData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModelName,
-		"model-name",
+		"name",
 		"n",
 		"",
 		"The name of the model to generate",

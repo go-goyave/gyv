@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
@@ -36,7 +37,7 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 		}
 
 		if err := c.Execute(); err != nil {
-			return fmt.Errorf("❌ %w", err)
+			fmt.Fprintf(os.Stderr, "❌ %s\n", err.Error())
 		}
 
 		return nil

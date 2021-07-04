@@ -14,7 +14,20 @@ The official CLI for the [Goyave](https://github.com/go-goyave/goyave) REST API 
 
 ## Install
 
-**WIP: you cannot install `gyv` yet.**
+**Minimum Go version:** 1.16
+
+```
+go install goyave.dev/gyv@latest
+```
+
+## Usage
+
+```
+gyv create project
+gyv create controller --controller-name "hello"
+gyv create model --model-name "user"
+gyv create middleware --middleware-name "auth"
+```
 
 ## License
 
