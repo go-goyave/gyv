@@ -16,8 +16,8 @@ type Command interface {
 	BuildCobraCommand() *cobra.Command
 }
 
-// GenerateRunFunc is a function which is used by all commands to determine which behavior to take
-// If all required flags are set, the main process start
+// GenerateRunFunc generic cobra handler
+// If all required flags are set, the command's specific behavior is executed.
 // Otherwise a survey is launched for allow the user to inject the data
 func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 	return func(*cobra.Command, []string) error {

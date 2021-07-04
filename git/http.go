@@ -14,19 +14,16 @@ import (
 	"github.com/tomnomnom/linkheader"
 )
 
-// HTTPClient is an abstraction of the default HTTP client
+// HTTPClient is an abstraction of the default HTTP client.
+// Mainly used to ease testing.
 type HTTPClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 var (
 	// GitClient is the client config for HTTP request
-	GitClient HTTPClient
+	GitClient HTTPClient = &http.Client{Timeout: 30 * time.Second}
 )
-
-func init() {
-	GitClient = &http.Client{Timeout: 30 * time.Second}
-}
 
 func getLinksData(bodyList [][]byte, link *string) ([][]byte, error) {
 	if link == nil {
@@ -93,7 +90,7 @@ func getNextPageURL(rawLinks string) *string {
 	return nil
 }
 
-// DownloadFile is a function which download a file with a URL and new name for the downloaded file
+// DownloadFile download a file from given URL and writes it to the given filename
 func DownloadFile(url string, filename string) error {
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -132,7 +129,7 @@ func DownloadFile(url string, filename string) error {
 
 	bar := progressbar.DefaultBytes(
 		response.ContentLength,
-		"downloading",
+		"Downloading",
 	)
 
 	if _, err := io.Copy(io.MultiWriter(file, bar), response.Body); err != nil {

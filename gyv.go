@@ -6,13 +6,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func buildGyv() *cobra.Command {
+func buildRootCommand() *cobra.Command {
 	gyv := &cobra.Command{
 		Use:     "cli-sample",
 		Version: "0.1.0",
-		Short:   "Resource generator tool for the goyave framework",
-		Long: `gyv is a resource generator tool for the Goyave framework.
-This tool work with all goyave versions.`,
+		Short:   "Productivity CLI for the Goyave framework",
+		Long: `gyv productivity command-line interface for the Goyave framework.
+All commands can be run either in interactive mode or using POSIX flags.`,
 	}
 
 	commands := []*cobra.Command{
@@ -26,8 +26,8 @@ This tool work with all goyave versions.`,
 	return gyv
 }
 
-// Execute is a function which start the root command gyv
+// Execute the gyv root command
 func Execute() {
-	rootCommand := buildGyv()
+	rootCommand := buildRootCommand()
 	_ = rootCommand.Execute()
 }

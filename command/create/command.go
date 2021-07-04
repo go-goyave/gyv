@@ -6,14 +6,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// BuildCommand is a function which build subcommand of gyv
+// BuildCommand builds a parent command for all creation-related subcommands
 func BuildCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create",
-		Short: "Create goyave framework resources",
-		Long: `Command to create goyave resources, it's composed of many subcommands.
-You can either use the flags to inject the information or not use them.
-If you don't use the flags a survey will be launched and with it you will be able to insert the information.`,
+		Short: "Create Goyave projects and resources",
+		Long:  "Command to create Goyave projects and resources, such as controllers or models.",
 	}
 
 	commands := []command.Command{

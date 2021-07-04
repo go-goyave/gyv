@@ -21,16 +21,14 @@ type MiddlewareData struct {
 	ProjectPath    string
 }
 
-// BuildCobraCommand is a function used to build a cobra command
+// BuildCobraCommand builds the cobra command for this action
 func (c *MiddlewareData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "middleware",
-		Short: "Create a goyave middleware",
-		Long: `Command to create goyave middleware with the help of a survey.
+		Short: "Create a Goyave middleware",
+		Long: `Command to create Goyave middleware.
 Only the middleware-name flag is required. The project-path is optional.
-Is project-path is empty, the program going to search for a goyave project root.
-And for this, the program going to move up to the parent directory and check each time if this directory is a goyave project.
-If any parents directories are goyave project, an error will be raised.`,
+If project-path is not specified, the nearest directory containing a go.mod file importing Goyave will be used.`,
 		RunE: command.GenerateRunFunc(c),
 	}
 
@@ -39,22 +37,25 @@ If any parents directories are goyave project, an error will be raised.`,
 	return cmd
 }
 
-// BuildSurvey is a function used to build a survey
+// BuildSurvey builds a survey for this action
 func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "middlewareName",
-			Prompt:   &survey.Input{Message: "Input the name of the middleware to generate"},
+			Prompt:   &survey.Input{Message: "Middleware name"},
 			Validate: survey.Required,
 		},
 		{
-			Name:   "projectPath",
-			Prompt: &survey.Input{Message: "Input the path to the goyave project"},
+			Name: "projectPath",
+			Prompt: &survey.Input{
+				Message: "Project path",
+				Help:    "Leave empty for auto-detect",
+			},
 		},
 	}, nil
 }
 
-// Execute is the core function of the command
+// Execute the command's behavior
 func (c *MiddlewareData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
 		return err
@@ -90,7 +91,7 @@ func (c *MiddlewareData) Execute() error {
 		return err
 	}
 
-	fmt.Println("✅ File Created !")
+	fmt.Println("✅ Middleware created!")
 
 	return nil
 }
@@ -128,6 +129,6 @@ func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {
 		"project-path",
 		"p",
 		"",
-		"The path to the goyave project root",
+		"The path to the Goyave project root",
 	)
 }

@@ -9,12 +9,12 @@ import (
 	"strings"
 )
 
-// ProjectNameFromModuleName is a function which extract project name from a module name
+// ProjectNameFromModuleName extract project name from a module name
 func ProjectNameFromModuleName(moduleName *string) string {
 	return strings.Split(*moduleName, "/")[bytes.Count([]byte(*moduleName), []byte("/"))]
 }
 
-// ReplaceAll is a function which replace all default module names or package names by injected values
+// ReplaceAll replace all default module names or package names with injected values
 func ReplaceAll(projectName string, moduleName string) error {
 	if err := replaceProjectModuleName(projectName, moduleName); err != nil {
 		return err

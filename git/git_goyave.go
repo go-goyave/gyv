@@ -9,7 +9,7 @@ import (
 	"github.com/Masterminds/semver"
 )
 
-// Tag is a struct which represent github api response
+// Tag represent github api response
 type Tag struct {
 	Name       string `json:"name"`
 	ZipballURL string `json:"zipball_url"`
@@ -30,7 +30,7 @@ func (tag *Tag) String() string {
 	return string(jsonValue)
 }
 
-// GetVersions is a function which convert Tag into semver Version
+// GetVersions convert Tag into semver Version
 func GetVersions(tags []Tag) ([]*semver.Version, error) {
 	var versions []*semver.Version
 
@@ -50,8 +50,8 @@ func (tag *Tag) getVersion() (*semver.Version, error) {
 	return semver.NewVersion(tag.Name)
 }
 
-// GetTopVersions is a function which only return all major and minor versions
-// Only the top patch version is taken
+// GetTopVersions return all major and minor versions
+// Only the highest patch version is taken
 func GetTopVersions(versions []*semver.Version) ([]*semver.Version, error) {
 	filteredVersions := versions[:1]
 	for _, version := range versions {
@@ -105,7 +105,7 @@ func buildMajorMinorVersionString(version *semver.Version) string {
 	return resultString
 }
 
-// VersionsToStrings is a function which convert semver Versions into a array of string
+// VersionsToStrings convert semver Versions into a array of strings
 func VersionsToStrings(versions []*semver.Version) []string {
 	var result []string
 
@@ -116,7 +116,7 @@ func VersionsToStrings(versions []*semver.Version) []string {
 	return result
 }
 
-// GetAllTags is a function which return all goyave tags registered inside github api
+// GetAllTags return all Goyave tags registered inside Github API
 func GetAllTags() ([]Tag, error) {
 	goyaveTagsURL := "https://api.github.com/repos/go-goyave/template/tags"
 	bodyContent, link, err := getHTTPData(&goyaveTagsURL)
@@ -148,7 +148,7 @@ func GetAllTags() ([]Tag, error) {
 	return tags, nil
 }
 
-// GetTagByName is a search function whiwh return a tag from a string version
+// GetTagByName search a tag from a string version and a list of tags
 func GetTagByName(name string, tags []Tag) (*Tag, error) {
 	toCheck, err := semver.NewVersion(name)
 	if err != nil {
@@ -174,7 +174,7 @@ func GetTagByName(name string, tags []Tag) (*Tag, error) {
 	return nil, fmt.Errorf("No tag found for: %s", name)
 }
 
-// ProjectGitInit is a function which initialize a git project
+// ProjectGitInit initialize a git project
 func ProjectGitInit(projectName string) error {
 	if _, err := exec.Command("git", "init", projectName).Output(); err != nil {
 		return err

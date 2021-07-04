@@ -15,22 +15,20 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// ModelData is a structure which represents the data injected by the user to generate a model
+// ModelData the data injected by the user to generate a model
 type ModelData struct {
 	ModelName   string
 	ProjectPath string
 }
 
-// BuildCobraCommand is a function used to build a cobra command
+// BuildCobraCommand builds the cobra command for this action
 func (c *ModelData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "model",
-		Short: "Create a goyave model",
-		Long: `Command to create goyave model with the help of a survey.
+		Short: "Create a Goyave model",
+		Long: `Command to create Goyave model.
 Only the model-name flag is required. The project-path is optional.
-Is project-path is empty, the program going to search for a goyave project root.
-And for this, the program going to move up to the parent directory and check each time if this directory is a goyave project.
-If any parents directories are goyave project, an error will be raised.`,
+If project-path is not specified, the nearest directory containing a go.mod file importing Goyave will be used.`,
 		RunE: command.GenerateRunFunc(c),
 	}
 
@@ -39,22 +37,25 @@ If any parents directories are goyave project, an error will be raised.`,
 	return cmd
 }
 
-// BuildSurvey is a function used to build a survey
+// BuildSurvey builds a survey for this action
 func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "modelName",
-			Prompt:   &survey.Input{Message: "Input the name of the model"},
+			Prompt:   &survey.Input{Message: "Model name"},
 			Validate: survey.Required,
 		},
 		{
-			Name:   "projectPath",
-			Prompt: &survey.Input{Message: "Input the path to the goyave project"},
+			Name: "projectPath",
+			Prompt: &survey.Input{
+				Message: "Project path",
+				Help:    "Leave empty for auto-detect",
+			},
 		},
 	}, nil
 }
 
-// Execute is the core function of the command
+// Execute the command's behavior
 func (c *ModelData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
 		return err
@@ -93,12 +94,12 @@ func (c *ModelData) Execute() error {
 		return err
 	}
 
-	fmt.Println("✅ File Created !")
+	fmt.Println("✅ Model created!")
 
 	return nil
 }
 
-// Validate is a function which check if required flags are definded
+// Validate checks if required flags are definded
 func (c *ModelData) Validate() error {
 	if c.ModelName == "" {
 		return errors.New("❌ required flag \"model-name\"")
@@ -107,7 +108,7 @@ func (c *ModelData) Validate() error {
 	return nil
 }
 
-// UsedFlags is a function which check if flags are used
+// UsedFlags checks if flags are used
 func (c *ModelData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--model-name" || arg == "-n" {
@@ -131,6 +132,6 @@ func (c *ModelData) setFlags(flags *pflag.FlagSet) {
 		"project-path",
 		"p",
 		"",
-		"The path to the goyave project root",
+		"The path to the Goyave project root",
 	)
 }

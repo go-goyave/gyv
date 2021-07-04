@@ -17,7 +17,15 @@ const (
 	goModFilename = "go.mod"
 )
 
-// IsValidProject is a function which check if the directory is a goyave project
+var (
+	// ErrNotAGoyaveProject returned when the go project found doesn't import Goyave
+	ErrNotAGoyaveProject = errors.New("Current project doesn't import Goyave")
+
+	// ErrNoGoMod returned when no go.mod file can be found
+	ErrNoGoMod = errors.New("No go.mod found")
+)
+
+// IsValidProject check if the directory is a Goyave project
 func IsValidProject(projectPath string) error {
 	if projectPath == "" {
 		return setRootWorkingDirectory()
@@ -29,7 +37,7 @@ func IsValidProject(projectPath string) error {
 	}
 
 	if !isGoyaveProject {
-		return errors.New("The root isn't a goyave project")
+		return ErrNotAGoyaveProject
 	}
 
 	return nil
@@ -48,7 +56,7 @@ func setRootWorkingDirectory() error {
 		_, err := os.Stat(context)
 
 		if os.IsPermission(err) {
-			return errors.New("No go.mod found")
+			return ErrNoGoMod
 		}
 		if err != nil {
 			return err
@@ -81,7 +89,7 @@ func setRootWorkingDirectory() error {
 			context = strings.Join(splitedContext[:contextLength], sep)
 
 			if contextLength <= 1 {
-				return errors.New("No go.mod found")
+				return ErrNoGoMod
 			}
 		}
 
@@ -133,7 +141,7 @@ func getGoyaveUrls() []string {
 	return []string{"goyave.dev/goyave", "github.com/System-Glitch/goyave"}
 }
 
-// GetGoyaveVersion is a function which return the goyave version from a go.mod
+// GetGoyaveVersion return the goyave version from a go.mod
 func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 	modfile, err := dataFromGoMod(projectPath)
 	if err != nil {
@@ -153,10 +161,10 @@ func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 		}
 	}
 
-	return nil, errors.New("The root isn't a goyave project")
+	return nil, ErrNotAGoyaveProject
 }
 
-// GetGoyavePath is a function which return goyave module path
+// GetGoyavePath return goyave module path
 func GetGoyavePath(projectPath string) (*string, error) {
 	modfile, err := dataFromGoMod(projectPath)
 	if err != nil {
@@ -171,5 +179,5 @@ func GetGoyavePath(projectPath string) (*string, error) {
 		}
 	}
 
-	return nil, errors.New("The root isn't a goyave project")
+	return nil, ErrNotAGoyaveProject
 }

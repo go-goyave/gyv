@@ -20,21 +20,20 @@ const (
 	defaultZipFileName = "goyave_template.zip"
 )
 
-// ProjectData is a structure which represents the data injected by the user to generate a goyave project
+// ProjectData the data injected by the user to generate a goyave project
 type ProjectData struct {
 	GoyaveVersion string
 	ModuleName    string
 }
 
-// BuildCobraCommand is a function used to build a cobra command
+// BuildCobraCommand builds the cobra command for this action
 func (c *ProjectData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
-		Short: "Create a goyave project",
-		Long: `Command to create goyave project with the help of a survey.
-Some go and git commands are used for create the project, go and git must be installed and definded in your environment.
-The flags --module-name and --goyave-version are required.
-In the case where you don't use flags, a survey will be start to allow you to inject the data.`,
+		Short: "Create a Goyave project",
+		Long: `Command to create Goyave project.
+You need go and git to be installed on your system in order de run this command.
+The flags --module-name and --goyave-version are required.`,
 		RunE: command.GenerateRunFunc(c),
 	}
 
@@ -43,7 +42,7 @@ In the case where you don't use flags, a survey will be start to allow you to in
 	return cmd
 }
 
-// BuildSurvey is a function used to build a survey
+// BuildSurvey builds a survey for this action
 func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 	tags, err := git.GetAllTags()
 	if err != nil {
@@ -63,13 +62,13 @@ func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "moduleName",
-			Prompt:   &survey.Input{Message: "Input the name of the go module"},
+			Prompt:   &survey.Input{Message: "Go module name"},
 			Validate: survey.Required,
 		},
 		{
 			Name: "goyaveVersion",
 			Prompt: &survey.Select{
-				Message: "Choise Goyave version number:",
+				Message: "Goyave version number",
 				Options: git.VersionsToStrings(filteredVersions),
 				Default: filteredVersions[0].String(),
 			},
@@ -78,7 +77,7 @@ func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 
 }
 
-// Execute is the core function of the command
+// Execute the command's behavior
 func (c *ProjectData) Execute() error {
 	tags, err := git.GetAllTags()
 	if err != nil {
@@ -131,12 +130,13 @@ func (c *ProjectData) Execute() error {
 		return err
 	}
 
-	fmt.Println("✅ Project created !")
+	fmt.Println("✅ Project created!")
+	fmt.Printf("➡️ Get started by navigating to \"%s\"\n", projectName)
 
 	return nil
 }
 
-// Validate is a function which check if required flags are definded
+// Validate check if required flags are definded
 func (c *ProjectData) Validate() error {
 	if c.GoyaveVersion == "" || c.ModuleName == "" {
 		return errors.New("required flag(s) \"goyave-version\" and \"module-name\" aren't set")
@@ -145,7 +145,7 @@ func (c *ProjectData) Validate() error {
 	return nil
 }
 
-// UsedFlags is a function which check if flags are used
+// UsedFlags check if flags are used
 func (c *ProjectData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--module-name" || arg == "-n" {
@@ -173,7 +173,7 @@ func (c *ProjectData) setFlags(flags *pflag.FlagSet) {
 		"goyave-version",
 		"g",
 		"",
-		"The version of goyave for generate a corresponding template",
+		"The Goyave version used in this project",
 	)
 
 }
