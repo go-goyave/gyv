@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,7 +18,11 @@ func ExtractZip(filename string, projectName string) ([]string, error) {
 	if err != nil {
 		return filenames, err
 	}
-	defer r.Close()
+	defer func() {
+		if err := r.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	for _, f := range r.File[1:] {
 		fpath := filepath.Join(projectName, strings.Join(strings.Split(f.Name, "/")[1:], "/"))

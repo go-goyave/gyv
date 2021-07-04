@@ -56,27 +56,27 @@ func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 // Execute is the core function of the command
 func (c *ControllerData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, *goyaveVersion)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
@@ -84,7 +84,7 @@ func (c *ControllerData) Execute() error {
 		"ControllerName":   c.ControllerName,
 	})
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if err := fs.CreatePath(*folderPath); err != nil {
@@ -93,7 +93,7 @@ func (c *ControllerData) Execute() error {
 
 	err = fs.CreateResourceFile(*folderPath, c.ControllerName, templateData.Bytes())
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	fmt.Println("✅ File Created !")

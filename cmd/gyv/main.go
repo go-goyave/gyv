@@ -1,7 +1,7 @@
 package main
 
-import "goyave.dev/gyv/cmd/gyv/cli"
+import "goyave.dev/gyv"
 
 func main() {
-	cli.Execute()
+	gyv.Execute()
 }

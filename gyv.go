@@ -1,7 +1,7 @@
-package cli
+package gyv
 
 import (
-	"goyave.dev/gyv/create"
+	"goyave.dev/gyv/command/create"
 
 	"github.com/spf13/cobra"
 )

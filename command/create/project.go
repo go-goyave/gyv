@@ -82,53 +82,53 @@ func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 func (c *ProjectData) Execute() error {
 	tags, err := git.GetAllTags()
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	projectName := mod.ProjectNameFromModuleName(&c.ModuleName)
 
 	info, err := os.Stat(projectName)
 	if info != nil {
-		return errors.New("❌ A directory with this name already exists")
+		return errors.New("A directory with this name already exists")
 	}
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	tag, err := git.GetTagByName(c.GoyaveVersion, tags)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if err := git.DownloadFile(tag.ZipballURL, defaultZipFileName); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if _, err := fs.ExtractZip(defaultZipFileName, projectName); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if err := mod.ReplaceAll(projectName, c.ModuleName); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if err := git.ProjectGitInit(projectName); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	if err := os.Remove(defaultZipFileName); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	currentWorkingDirectory, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	tidyCommand := exec.Command("go", "mod", "tidy")
 	tidyCommand.Dir = fmt.Sprintf("%s%c%s", currentWorkingDirectory, os.PathSeparator, projectName)
 	if err := tidyCommand.Run(); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	fmt.Println("✅ Project created !")

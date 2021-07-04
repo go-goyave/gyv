@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -50,7 +51,11 @@ func getHTTPData(url *string) ([]byte, *string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	if response.StatusCode > 299 {
 		data, err := ioutil.ReadAll(response.Body)
@@ -99,7 +104,11 @@ func DownloadFile(url string, filename string) error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	if response.StatusCode > 299 {
 		data, err := ioutil.ReadAll(response.Body)
@@ -115,7 +124,11 @@ func DownloadFile(url string, filename string) error {
 		return err
 	}
 
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Println(err)
+		}
+	}()
 
 	bar := progressbar.DefaultBytes(
 		response.ContentLength,

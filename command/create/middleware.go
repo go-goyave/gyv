@@ -57,22 +57,22 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 // Execute is the core function of the command
 func (c *MiddlewareData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, *goyaveVersion)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
@@ -80,14 +80,14 @@ func (c *MiddlewareData) Execute() error {
 		"MiddlewareName":   strings.Title(c.MiddlewareName),
 	})
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	folderPath := fs.CreateMiddlewarePath(c.ProjectPath)
 
 	err = fs.CreateResourceFile(folderPath, c.MiddlewareName, templateData.Bytes())
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	fmt.Println("✅ File Created !")

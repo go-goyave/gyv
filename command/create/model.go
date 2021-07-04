@@ -57,22 +57,22 @@ func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 // Execute is the core function of the command
 func (c *ModelData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	stubPath, err := stub.GenerateStubVersionPath(stub.Model, *goyaveVersion)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
@@ -80,17 +80,17 @@ func (c *ModelData) Execute() error {
 		"ModelName":        strings.Title(c.ModelName),
 	})
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	folderPath, err := fs.CreateModelPath(c.ModelName, c.ProjectPath)
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	err = fs.CreateResourceFile(*folderPath, c.ModelName, templateData.Bytes())
 	if err != nil {
-		return fmt.Errorf("❌ %s", err.Error())
+		return err
 	}
 
 	fmt.Println("✅ File Created !")

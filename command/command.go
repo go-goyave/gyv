@@ -1,6 +1,8 @@
 package command
 
 import (
+	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 )
@@ -29,13 +31,14 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 				return err
 			}
 
-			return c.Execute()
-		}
-
-		if err := c.Validate(); err != nil {
+		} else if err := c.Validate(); err != nil {
 			return err
 		}
 
-		return c.Execute()
+		if err := c.Execute(); err != nil {
+			return fmt.Errorf("❌ %w", err)
+		}
+
+		return nil
 	}
 }
