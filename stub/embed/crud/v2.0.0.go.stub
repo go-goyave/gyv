@@ -1,0 +1,96 @@
+package {{$.ControllerName}}
+
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+
+	"{{$.GoyaveModVersion}}"
+)
+
+type {{$.ControllerNameCapitalize}}Struct struct {
+	Id   uint
+	Name string
+}
+
+var (
+	{{$.ControllerName}}Data []{{$.ControllerNameCapitalize}}Struct
+)
+
+func init() {
+	{{$.ControllerName}}Data = make([]{{$.ControllerNameCapitalize}}Struct, 5)
+	for i := range {{$.ControllerName}}Data {
+		{{$.ControllerName}}Data[i] = {{$.ControllerNameCapitalize}}Struct{
+			Id:   uint(i),
+			Name: fmt.Sprintf("Value %d", i),
+		}
+	}
+}
+
+func Index(response *goyave.Response, request *goyave.Request) {
+	response.JSON(http.StatusOK, {{$.ControllerName}}Data)
+}
+
+func Store(response *goyave.Response, request *goyave.Request) {
+	id, err := strconv.Atoi(request.String("id"))
+	if err != nil {
+		response.Error(err)
+	}
+
+	requestData := {{$.ControllerNameCapitalize}}Struct{
+		Id:   uint(id),
+		Name: request.String("name"),
+	}
+
+	for _, {{$.ControllerName}} := range {{$.ControllerName}}Data {
+		if {{$.ControllerName}}.Id == requestData.Id {
+			response.JSON(http.StatusConflict, fmt.Errorf("Id already exist"))
+			return
+		}
+
+	}
+
+	{{$.ControllerName}}Data = append({{$.ControllerName}}Data, requestData)
+	response.JSON(http.StatusCreated, map[string]uint{"id": requestData.Id})
+}
+
+func Update(response *goyave.Response, request *goyave.Request) {
+	id, err := strconv.Atoi(request.Params["id"])
+	if err != nil {
+		response.Error(err)
+	}
+
+	requestId := uint(id)
+	isUpdated := false
+
+	for i, {{$.ControllerName}} := range {{$.ControllerName}}Data {
+		if {{$.ControllerName}}.Id == requestId {
+			{{$.ControllerName}}Data[i].Name = request.String("name")
+			isUpdated = true
+		}
+	}
+
+	if !isUpdated {
+		response.Status(http.StatusNotFound)
+		return
+	}
+
+	response.Status(http.StatusNoContent)
+}
+
+func Destroy(response *goyave.Response, request *goyave.Request) {
+	id, err := strconv.Atoi(request.Params["id"])
+	if err != nil {
+		response.Error(err)
+	}
+
+	requestId := uint(id)
+
+	for i, {{$.ControllerName}} := range {{$.ControllerName}}Data {
+		if {{$.ControllerName}}.Id == requestId {
+			{{$.ControllerName}}Data = append({{$.ControllerName}}Data[:i], {{$.ControllerName}}Data[i+1:]...)
+		}
+	}
+
+	response.Status(http.StatusNoContent)
+}

@@ -1,0 +1,9 @@
+package middleware
+
+import "{{$.GoyaveModVersion}}"
+
+func {{$.MiddlewareName}}(next goyave.Handler) goyave.Handler {
+	return func(response *goyave.Response, request *goyave.Request) {
+		next(response, request) // Pass to the next handler
+	}
+}
