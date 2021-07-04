@@ -1,9 +1,8 @@
-package gyv
+package main
 
 import (
-	"goyave.dev/gyv/command/create"
-
 	"github.com/spf13/cobra"
+	"goyave.dev/gyv/command/create"
 )
 
 func buildRootCommand() *cobra.Command {
@@ -26,8 +25,11 @@ All commands can be run either in interactive mode or using POSIX flags.`,
 	return gyv
 }
 
-// Execute the gyv root command
-func Execute() {
+func execute() {
 	rootCommand := buildRootCommand()
 	_ = rootCommand.Execute()
+}
+
+func main() {
+	execute()
 }
