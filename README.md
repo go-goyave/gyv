@@ -24,9 +24,9 @@ go install goyave.dev/gyv@latest
 
 ```
 gyv create project
-gyv create controller --controller-name "hello"
-gyv create model --model-name "user"
-gyv create middleware --middleware-name "auth"
+gyv create controller --name "hello"
+gyv create model --name "user"
+gyv create middleware --name "auth"
 ```
 
 ## License
