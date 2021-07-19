@@ -1,7 +1,7 @@
 package create
 
 import (
-	"goyave.dev/gyv/command"
+	"goyave.dev/gyv/internal/command"
 
 	"github.com/spf13/cobra"
 )

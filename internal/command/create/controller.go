@@ -5,13 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"goyave.dev/gyv/command"
-	"goyave.dev/gyv/fs"
-	"goyave.dev/gyv/stub"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"goyave.dev/gyv/internal/command"
+	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/stub"
 )
 
 // ControllerData the data injected by the user to generate a controller

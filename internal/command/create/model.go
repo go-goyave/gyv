@@ -6,28 +6,27 @@ import (
 	"os"
 	"strings"
 
-	"goyave.dev/gyv/command"
-	"goyave.dev/gyv/fs"
-	"goyave.dev/gyv/stub"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"goyave.dev/gyv/internal/command"
+	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/stub"
 )
 
-// MiddlewareData is a structure which represents the data injected by the user to generate a middleware
-type MiddlewareData struct {
-	MiddlewareName string
-	ProjectPath    string
+// ModelData the data injected by the user to generate a model
+type ModelData struct {
+	ModelName   string
+	ProjectPath string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *MiddlewareData) BuildCobraCommand() *cobra.Command {
+func (c *ModelData) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "middleware",
-		Short: "Create a Goyave middleware",
-		Long: `Command to create Goyave middleware.
-Only the middleware-name flag is required. The project-path is optional.
+		Use:   "model",
+		Short: "Create a Goyave model",
+		Long: `Command to create Goyave model.
+Only the model-name flag is required. The project-path is optional.
 If project-path is not specified, the nearest directory containing a go.mod file importing Goyave will be used.`,
 		RunE: command.GenerateRunFunc(c),
 	}
@@ -38,11 +37,11 @@ If project-path is not specified, the nearest directory containing a go.mod file
 }
 
 // BuildSurvey builds a survey for this action
-func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
+func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
-			Name:     "middlewareName",
-			Prompt:   &survey.Input{Message: "Middleware name"},
+			Name:     "modelName",
+			Prompt:   &survey.Input{Message: "Model name"},
 			Validate: survey.Required,
 		},
 		{
@@ -53,7 +52,7 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 }
 
 // Execute the command's behavior
-func (c *MiddlewareData) Execute() error {
+func (c *ModelData) Execute() error {
 	if err := fs.IsValidProject(c.ProjectPath); err != nil {
 		return err
 	}
@@ -68,42 +67,45 @@ func (c *MiddlewareData) Execute() error {
 		return err
 	}
 
-	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, *goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Model, *goyaveVersion)
 	if err != nil {
 		return err
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
 		"GoyaveModVersion": *goyaveModVersion,
-		"MiddlewareName":   strings.Title(c.MiddlewareName),
+		"ModelName":        strings.Title(c.ModelName),
 	})
 	if err != nil {
 		return err
 	}
 
-	folderPath := fs.CreateMiddlewarePath(c.ProjectPath)
-
-	err = fs.CreateResourceFile(folderPath, c.MiddlewareName, templateData.Bytes())
+	folderPath, err := fs.CreateModelPath(c.ModelName, c.ProjectPath)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println("✅ Middleware created!")
+	err = fs.CreateResourceFile(*folderPath, c.ModelName, templateData.Bytes())
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("✅ Model created!")
 
 	return nil
 }
 
-// Validate is a function which check if required flags are definded
-func (c *MiddlewareData) Validate() error {
-	if c.MiddlewareName == "" {
+// Validate checks if required flags are definded
+func (c *ModelData) Validate() error {
+	if c.ModelName == "" {
 		return errors.New("❌ required flag \"name\"")
 	}
 
 	return nil
 }
 
-// UsedFlags is a function which check if flags are used
-func (c *MiddlewareData) UsedFlags() bool {
+// UsedFlags checks if flags are used
+func (c *ModelData) UsedFlags() bool {
 	for _, arg := range os.Args[1:] {
 		if arg == "--name" || arg == "-n" {
 			return true
@@ -113,13 +115,13 @@ func (c *MiddlewareData) UsedFlags() bool {
 	return false
 }
 
-func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {
+func (c *ModelData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
-		&c.MiddlewareName,
+		&c.ModelName,
 		"name",
 		"n",
 		"",
-		"The name of the middleware to generate",
+		"The name of the model to generate",
 	)
 	flags.StringVarP(
 		&c.ProjectPath,

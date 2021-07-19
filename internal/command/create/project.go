@@ -6,14 +6,13 @@ import (
 	"os"
 	"os/exec"
 
-	"goyave.dev/gyv/command"
-	"goyave.dev/gyv/fs"
-	"goyave.dev/gyv/git"
-	"goyave.dev/gyv/mod"
-
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"goyave.dev/gyv/internal/command"
+	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/git"
+	"goyave.dev/gyv/internal/mod"
 )
 
 const (

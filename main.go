@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/spf13/cobra"
-	"goyave.dev/gyv/command/create"
+	"goyave.dev/gyv/internal/command/create"
 )
 
 func buildRootCommand() *cobra.Command {
