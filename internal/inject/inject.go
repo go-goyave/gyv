@@ -25,28 +25,20 @@ func generatePluginPath() string {
 	return fmt.Sprintf("%s%cgyv-code-injection.go", os.TempDir(), os.PathSeparator)
 }
 
-func generateTempFile(filename string, functions ...*Function) error {
+func generateTempFile(filename string, file File) error {
 
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer f.Close()
 
-	if _, err := file.WriteString("package main\n"); err != nil {
+	if _, err := f.WriteString(file.String()); err != nil {
 		os.Remove(filename)
 		return err
 	}
-	// TODO imports
 
-	for _, f := range functions {
-		if _, err := file.WriteString(f.String()); err != nil {
-			os.Remove(filename)
-			return err
-		}
-	}
-
-	return file.Close()
+	return f.Close()
 }
 
 func buildPlugin(output string) error {
