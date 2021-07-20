@@ -5,15 +5,65 @@ import (
 	"strings"
 )
 
+// File representation of temporary file used for code injection.
+type File struct {
+	Package   string
+	Imports   []string
+	Functions []Function
+}
+
+func (f File) String() string {
+	var builder strings.Builder
+	builder.Grow(f.len())
+
+	builder.WriteString("package ")
+	builder.WriteString(f.Package)
+	builder.WriteString("\n\n")
+
+	// Imports
+	if len(f.Imports) > 0 {
+		builder.WriteString("import (\n")
+		for _, i := range f.Imports {
+			builder.WriteString("\t\"")
+			builder.WriteString(i)
+			builder.WriteString("\"\n")
+		}
+		builder.WriteString(")\n\n")
+	}
+
+	for _, function := range f.Functions {
+		builder.WriteString(function.String())
+	}
+
+	return builder.String()
+}
+
+func (f File) len() int {
+	length := 10 + len(f.Package) // "package " and "\n\n"
+
+	if len(f.Imports) > 0 {
+		length += 12 // "import (\n" and ")\n\n"
+		for _, i := range f.Imports {
+			length += len(i) + 4 // '\t"' and '"\n'
+		}
+	}
+
+	for _, function := range f.Functions {
+		length += function.len()
+	}
+
+	return length
+}
+
 // Function simple representation of a function for code injection.
 type Function struct {
 	Name         string
-	Parameters   []*Parameter
+	Parameters   []Parameter
 	ReturnTypes  []string
 	ReturnValues []string
 }
 
-func (f *Function) String() string {
+func (f Function) String() string {
 	var builder strings.Builder
 	builder.Grow(f.len())
 
@@ -62,7 +112,7 @@ func (f *Function) String() string {
 	return builder.String()
 }
 
-func (f *Function) len() int {
+func (f Function) len() int {
 	length := 11 + len(f.Name) // "func " + name + "() {}\n"
 	for _, p := range f.Parameters {
 		length += p.len()
@@ -98,10 +148,10 @@ type Parameter struct {
 	Type string
 }
 
-func (p *Parameter) String() string {
+func (p Parameter) String() string {
 	return fmt.Sprintf("%s %s", p.Name, p.Type)
 }
 
-func (p *Parameter) len() int {
+func (p Parameter) len() int {
 	return len(p.Name) + len(p.Type) + 1
 }
