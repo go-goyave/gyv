@@ -64,6 +64,7 @@ func (c *ControllerData) Execute() error {
 		return err
 	}
 
+	// FIXME go.mod is parsed twice
 	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
 	if err != nil {
 		return err

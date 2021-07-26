@@ -13,6 +13,8 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
+// TODO this file should be moved to the "mod" package
+
 const (
 	goModFilename = "go.mod"
 )
