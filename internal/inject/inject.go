@@ -84,11 +84,7 @@ func FindRouteRegistrer(directory string) (*FunctionCall, error) {
 			return true
 		})
 	}
-	// Find main function in files in current directory
-	// In main function find goyave.Start()
-	// Extract the parameter
-	// If the parameter contains a dot, check in the import list and find the corresponding one
-	// But a dot may also mean a call to a function with a receiver (don't support that for now)
+
 	if routeRegister == nil {
 		return nil, fmt.Errorf("Could not find any valid call of \"goyave.Start()\"")
 	}
