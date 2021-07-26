@@ -57,6 +57,8 @@ func (c *ControllerData) Execute() error {
 		return err
 	}
 
+	// TODO extract actual behavior (excluding validation and visual output)
+	// That would help "front-end" part of the CLI to be swapped with ease.
 	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath)
 	if err != nil {
 		return err
@@ -78,7 +80,7 @@ func (c *ControllerData) Execute() error {
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
-		"GoyaveModVersion": *goyaveModVersion,
+		"GoyaveModVersion": goyaveModVersion,
 		"ControllerName":   c.ControllerName,
 	})
 	if err != nil {

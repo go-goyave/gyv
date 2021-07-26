@@ -2,6 +2,7 @@ package inject
 
 import (
 	"fmt"
+	"os"
 	"strings"
 )
 

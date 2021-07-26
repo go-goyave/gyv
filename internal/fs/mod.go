@@ -165,19 +165,19 @@ func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 }
 
 // GetGoyavePath return goyave module path
-func GetGoyavePath(projectPath string) (*string, error) {
+func GetGoyavePath(projectPath string) (string, error) {
 	modfile, err := dataFromGoMod(projectPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	for _, require := range modfile.Require {
 		for _, url := range getGoyaveUrls() {
 			if strings.Contains(require.Mod.Path, url) {
-				return &require.Mod.Path, nil
+				return require.Mod.Path, nil
 			}
 		}
 	}
 
-	return nil, ErrNotAGoyaveProject
+	return "", ErrNotAGoyaveProject
 }

@@ -73,7 +73,7 @@ func (c *ModelData) Execute() error {
 	}
 
 	templateData, err := stub.Load(*stubPath, stub.Data{
-		"GoyaveModVersion": *goyaveModVersion,
+		"GoyaveModVersion": goyaveModVersion,
 		"ModelName":        strings.Title(c.ModelName),
 	})
 	if err != nil {
