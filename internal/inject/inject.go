@@ -25,22 +25,6 @@ func generatePluginPath() string {
 	return fmt.Sprintf("%s%cgyv-code-injection.go", os.TempDir(), os.PathSeparator)
 }
 
-func generateTempFile(filename string, file File) error {
-
-	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if _, err := f.WriteString(file.String()); err != nil {
-		os.Remove(filename)
-		return err
-	}
-
-	return f.Close()
-}
-
 func buildPlugin(output string) error {
 	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
 	cmd.Stdout = os.Stdout

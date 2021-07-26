@@ -55,6 +55,23 @@ func (f File) len() int {
 	return length
 }
 
+// Save write this file to filesystem. If an error occurs during writing,
+// the file will be deleted.
+func (f File) Save(dest string) error {
+	file, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err := file.WriteString(f.String()); err != nil {
+		os.Remove(dest)
+		return err
+	}
+
+	return file.Close()
+}
+
 // Function simple representation of a function for code injection.
 type Function struct {
 	Name         string
