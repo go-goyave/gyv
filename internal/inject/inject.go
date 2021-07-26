@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"plugin"
 	"strings"
 	"time"
 
@@ -29,6 +30,75 @@ import (
 type FunctionCall struct {
 	Package *ast.ImportSpec
 	Value   string
+}
+
+// Inject a Goyave project into gyv.
+// TODO better documentation
+func Inject(directory string) (*plugin.Plugin, error) {
+	call, err := FindRouteRegistrer(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	// FIXME go.mod parsed twice
+	goyaveImportPath, err := fs.GetGoyavePath(directory)
+	if err != nil {
+		return nil, err
+	}
+	imports := []string{fmt.Sprintf("\"%s\"", goyaveImportPath)}
+	if callImport := importToString(call.Package); callImport != "" {
+		imports = append(imports, callImport)
+	}
+
+	file := File{
+		Package: "main",
+		Imports: imports,
+		Functions: []Function{
+			{
+				Name:         "InjectedRouteRegistrer",
+				ReturnTypes:  []string{"func(*goyave.Router)"}, // TODO potential future issue for compatibility
+				ReturnValues: []string{call.Value},
+			},
+		},
+	}
+
+	fileName := generateTempFileName(directory)
+	if err := file.Save(fileName); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := os.Remove(fileName); err != nil {
+			fmt.Println("⚠️ WARNING: could not delete temporary code injection file", fileName)
+		}
+	}()
+
+	pluginPath := generatePluginPath()
+	if err := buildPlugin(directory, pluginPath); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := os.Remove(pluginPath); err != nil {
+			fmt.Println("⚠️ WARNING: could not delete compiled plugin at", pluginPath)
+		}
+	}()
+
+	// FIXME plugin was built with a different version of package goyave.dev/goyave/v3/helper
+	// maybe using reflection that may work?
+	// or inject what's supposed to be executed by the CLI inside the plugin as well?
+	// Can use hashicorp/go-plugin instead of std plugin
+	return plugin.Open(pluginPath)
+}
+
+func importToString(i *ast.ImportSpec) string {
+	if i == nil {
+		return ""
+	}
+	str := ""
+	if i.Name != nil {
+		str += i.Name.Name + " "
+	}
+
+	return str + i.Path.Value
 }
 
 // FindRouteRegistrer tries to find the route registrer function from Go files
@@ -163,16 +233,17 @@ func findGoFiles(directory string) ([]string, error) {
 	return files, err
 }
 
-func generateTempFileName() string {
-	return fmt.Sprintf("codeinject-%d.go", time.Now().Unix())
+func generateTempFileName(parent string) string {
+	return fmt.Sprintf("%s%ccodeinject-%d.go", parent, os.PathSeparator, time.Now().Unix())
 }
 
 func generatePluginPath() string {
-	return fmt.Sprintf("%s%cgyv-code-injection.go", os.TempDir(), os.PathSeparator)
+	return fmt.Sprintf("%s%cgyv-code-injection-%d.go", os.TempDir(), os.PathSeparator, time.Now().Unix())
 }
 
-func buildPlugin(output string) error {
+func buildPlugin(directory, output string) error {
 	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
+	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

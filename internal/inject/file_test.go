@@ -53,7 +53,7 @@ func TestFileString(t *testing.T) {
 	assert.Equal(t, "package main\n\n", f.String())
 	assert.Equal(t, 14, f.len())
 
-	f.Imports = []string{"goyave.dev/pak", "net/http"}
+	f.Imports = []string{"\"goyave.dev/pak\"", "\"net/http\""}
 	f.Functions = []Function{
 		{
 			Name: "InjectA",

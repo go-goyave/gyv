@@ -25,9 +25,9 @@ func (f File) String() string {
 	if len(f.Imports) > 0 {
 		builder.WriteString("import (\n")
 		for _, i := range f.Imports {
-			builder.WriteString("\t\"")
+			builder.WriteString("\t")
 			builder.WriteString(i)
-			builder.WriteString("\"\n")
+			builder.WriteString("\n")
 		}
 		builder.WriteString(")\n\n")
 	}
@@ -45,7 +45,7 @@ func (f File) len() int {
 	if len(f.Imports) > 0 {
 		length += 12 // "import (\n" and ")\n\n"
 		for _, i := range f.Imports {
-			length += len(i) + 4 // '\t"' and '"\n'
+			length += len(i) + 2 // '\t' and '\n'
 		}
 	}
 
