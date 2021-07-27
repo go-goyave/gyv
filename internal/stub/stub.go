@@ -23,6 +23,10 @@ const (
 	Middleware = "embed/middleware"
 	// Model is the path to model stubs
 	Model = "embed/model"
+	// Inject is the path to the inject stubs
+	Inject = "embed/inject"
+	// InjectOpenAPI is the path the injected OpenAPI generator stub
+	InjectOpenAPI = Inject + "/openapi.go.stub"
 )
 
 // Data represent the data to inject inside stub files

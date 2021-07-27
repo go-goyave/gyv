@@ -1,0 +1,17 @@
+package main
+
+import (
+	"{{$.GoyaveImportPath}}"
+	"{{$.GoyaveImportPath}}/config"
+	"goyave.dev/openapi3"
+	{{$.RouteRegistrerImportPath}}
+)
+
+func GenerateOpenAPI() ([]byte, error) {
+	if err := config.Load(); err != nil {
+		return nil, err
+	}
+	router := goyave.NewRouter()
+	route.Register(router)
+	return openapi3.NewGenerator().Generate(router).MarshalJSON()
+}

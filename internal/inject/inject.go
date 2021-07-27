@@ -14,6 +14,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/stub"
 )
 
 var (
@@ -38,13 +39,16 @@ type Injector struct {
 	GoyaveImportPath string
 	GoyaveVersion    *semver.Version
 
+	// StubName the path to the embedded stub used for
+	// the temporary source file generation.
+	StubName string
+	// StubData the data to inject into the stub.
+	StubData stub.Data
+
 	// Dependencies list of libraries that need to be imported
 	// for the planned injection. These libraries will be added
 	// automatically using "go get" and removed after the build is complete.
 	Dependencies []string
-
-	// File the temporary source file definition that will be injected.
-	File File
 }
 
 // NewInjector create a new injector for the project in the given directory.
@@ -89,7 +93,7 @@ func (i *Injector) Inject() (*plugin.Plugin, error) {
 func (i *Injector) build(output string) error {
 	fmt.Println("⚙️ Building plugin")
 	fileName := generateTempFileName(i.directory)
-	if err := i.File.Save(fileName); err != nil {
+	if err := i.writeTemporaryFile(fileName); err != nil {
 		return err
 	}
 	defer func() {
@@ -116,6 +120,7 @@ func (i *Injector) build(output string) error {
 		}
 	}
 
+	// TODO building can be long, does it use cache? Probably not due to timestamp in file name
 	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
 	cmd.Dir = i.directory
 	cmd.Stdout = os.Stdout
@@ -129,6 +134,29 @@ func (i *Injector) executeCommand(name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func (i *Injector) writeTemporaryFile(dest string) error {
+	data := stub.Data{"GoyaveImportPath": i.GoyaveImportPath}
+	for k, v := range i.StubData {
+		data[k] = v
+	}
+	s, err := stub.Load(stub.InjectOpenAPI, data)
+	if err != nil {
+		return err
+	}
+	file, err := os.OpenFile(dest, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = file.Close() }()
+
+	if _, err := file.WriteString(s.String()); err != nil {
+		_ = os.Remove(dest)
+		return err
+	}
+
+	return file.Close()
 }
 
 // OpenAPI3Generator injects openapi3 generator into given
@@ -145,44 +173,8 @@ func OpenAPI3Generator(directory string) (*plugin.Plugin, error) {
 		return nil, err
 	}
 	injector.Dependencies = append(injector.Dependencies, "goyave.dev/openapi3")
-
-	// TODO use only what's really needed. For example the openapi part will only be used
-	// by the spec command.
-	imports := []string{
-		"\"fmt\"",
-		"\"goyave.dev/openapi3\"",
-		fmt.Sprintf("\"%s\"", injector.GoyaveImportPath),
-		fmt.Sprintf("\"%s/config\"", injector.GoyaveImportPath),
-	}
-	if callImport := importToString(call.Package); callImport != "" {
-		imports = append(imports, callImport)
-	}
-
-	bodyFormat := `
-	if err := config.LoadFrom("%s/config.json"); err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	router := goyave.NewRouter()
-	%s(router)
-	return router`
-	injector.File = File{
-		Package: "main",
-		Imports: imports,
-		Functions: []Function{
-			{
-				Name:        "InjectedRouteRegistrer",
-				ReturnTypes: []string{"*goyave.Router"},
-				Body:        fmt.Sprintf(bodyFormat, directory, call.Value),
-			},
-			{
-				Name:        "GenerateOpenAPI",
-				ReturnTypes: []string{"[]byte", "error"},
-				Body:        "return openapi3.NewGenerator().Generate(InjectedRouteRegistrer()).MarshalJSON()",
-			},
-		},
-	}
-
+	injector.StubName = stub.InjectOpenAPI
+	injector.StubData = stub.Data{"RouteRegistrerImportPath": importToString(call.Package)}
 	return injector.Inject()
 }
 
