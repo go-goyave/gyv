@@ -16,21 +16,20 @@ func TestParameterString(t *testing.T) {
 }
 func TestFunctionString(t *testing.T) {
 	f := Function{
-		Name:         "Inject",
-		Parameters:   []Parameter{},
-		ReturnTypes:  []string{},
-		ReturnValues: []string{},
+		Name:        "Inject",
+		Parameters:  []Parameter{},
+		ReturnTypes: []string{},
 	}
 	assert.Equal(t, "func Inject() {}\n", f.String())
 	assert.Equal(t, 17, f.len())
 
 	f.ReturnTypes = []string{"int"}
-	f.ReturnValues = []string{"5"}
+	f.Body = "return 5"
 	assert.Equal(t, "func Inject() int {return 5}\n", f.String())
 	assert.Equal(t, 29, f.len())
 
 	f.ReturnTypes = []string{"int", "bool"}
-	f.ReturnValues = []string{"5", "true"}
+	f.Body = "return 5, true"
 	assert.Equal(t, "func Inject() (int, bool) {return 5, true}\n", f.String())
 	assert.Equal(t, 43, f.len())
 
@@ -62,16 +61,16 @@ func TestFileString(t *testing.T) {
 				{Name: "b", Type: "bool"},
 				{Name: "c", Type: "uint64"},
 			},
-			ReturnTypes:  []string{"int", "bool"},
-			ReturnValues: []string{"5", "true"},
+			ReturnTypes: []string{"int", "bool"},
+			Body:        "return 5, true",
 		},
 		{
 			Name: "InjectB",
 			Parameters: []Parameter{
 				{Name: "a", Type: "int"},
 			},
-			ReturnTypes:  []string{"func()"},
-			ReturnValues: []string{"pack.AFunction"},
+			ReturnTypes: []string{"func()"},
+			Body:        "return pack.AFunction",
 		},
 	}
 

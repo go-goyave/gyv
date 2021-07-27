@@ -12,18 +12,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/semver"
 	"goyave.dev/gyv/internal/fs"
 )
-
-// read main.go and find the main route registrer using AST
-// can be another file that is not named main.go (find the main function and where goyave.Start is located)
-
-// Create a temp file with current timestamp in name
-// containing a function that returns the main route registrer
-// Compile in plugin mode
-// Use the injected function to generate a router
-// Delete the tmp file
-// Delete the built plugin (or output it to /tmp?)
 
 // FunctionCall is a string representation of a function call or reference
 // with its matching import. Doesn't support functions with parameters.
@@ -32,48 +23,49 @@ type FunctionCall struct {
 	Value   string
 }
 
-// Inject a Goyave project into gyv.
-// TODO better documentation
-func Inject(directory string) (*plugin.Plugin, error) {
-	call, err := FindRouteRegistrer(directory)
+// Injector code injector for Goyave projects. Builds a temporary source file at
+// the project's root, build the project in plugin mode and return a Plugin instance.
+type Injector struct {
+	directory        string
+	GoyaveImportPath string
+	GoyaveVersion    *semver.Version
+
+	// Dependencies list of libraries that need to be imported
+	// for the planned injection. These libraries will be added
+	// automatically using "go get" and removed after the build is complete.
+	Dependencies []string
+
+	// File the temporary source file definition that will be injected.
+	File File
+}
+
+// NewInjector create a new injector for the project in the given directory.
+// Can return an error if the given directory is not a Goyave project or its
+// version is not supported for injection.
+func NewInjector(directory string) (*Injector, error) {
+	injector := &Injector{
+		directory: directory,
+	}
+	// TODO minimum Goyave version for this CLI feature
+	goyaveVersion, err := fs.GetGoyaveVersion(directory)
 	if err != nil {
 		return nil, err
 	}
-
-	// FIXME go.mod parsed twice
 	goyaveImportPath, err := fs.GetGoyavePath(directory)
 	if err != nil {
 		return nil, err
 	}
-	imports := []string{fmt.Sprintf("\"%s\"", goyaveImportPath)}
-	if callImport := importToString(call.Package); callImport != "" {
-		imports = append(imports, callImport)
-	}
 
-	file := File{
-		Package: "main",
-		Imports: imports,
-		Functions: []Function{
-			{
-				Name:         "InjectedRouteRegistrer",
-				ReturnTypes:  []string{"func(*goyave.Router)"}, // TODO potential future issue for compatibility
-				ReturnValues: []string{call.Value},
-			},
-		},
-	}
+	injector.GoyaveVersion = goyaveVersion
+	injector.GoyaveImportPath = goyaveImportPath
+	return injector, nil
+}
 
-	fileName := generateTempFileName(directory)
-	if err := file.Save(fileName); err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err := os.Remove(fileName); err != nil {
-			fmt.Println("⚠️ WARNING: could not delete temporary code injection file", fileName)
-		}
-	}()
-
+// Inject writes temporary source file, compiles plugin, loads it and
+// cleans temporary source file and compiled plugin.
+func (i *Injector) Inject() (*plugin.Plugin, error) {
 	pluginPath := generatePluginPath()
-	if err := buildPlugin(directory, pluginPath); err != nil {
+	if err := i.build(pluginPath); err != nil {
 		return nil, err
 	}
 	defer func() {
@@ -81,12 +73,107 @@ func Inject(directory string) (*plugin.Plugin, error) {
 			fmt.Println("⚠️ WARNING: could not delete compiled plugin at", pluginPath)
 		}
 	}()
-
-	// FIXME plugin was built with a different version of package goyave.dev/goyave/v3/helper
-	// maybe using reflection that may work?
-	// or inject what's supposed to be executed by the CLI inside the plugin as well?
-	// Can use hashicorp/go-plugin instead of std plugin
 	return plugin.Open(pluginPath)
+}
+
+func (i *Injector) build(output string) error {
+	fmt.Println("⚙️ Building plugin")
+	fileName := generateTempFileName(i.directory)
+	if err := i.File.Save(fileName); err != nil {
+		return err
+	}
+	defer func() {
+		fmt.Println("🧹 Cleanup")
+		if err := os.Remove(fileName); err != nil {
+			fmt.Println("⚠️ WARNING: could not delete temporary code injection file", fileName)
+			return
+		}
+		for _, d := range i.Dependencies {
+			// FIXME check dependencies before editing go.mod. There may be no need to add a dependency, thus no need to remove neither
+			if err := i.executeCommand("go", "mod", "edit", fmt.Sprintf("-droprequire=%s", d)); err != nil {
+				fmt.Printf("⚠️ WARNING: could not drop \"%s\" mod requirement\n", d)
+			}
+			// Remove go.sum unused entries
+			if err := i.executeCommand("go", "mod", "tidy"); err != nil {
+				fmt.Println("⚠️ WARNING: \"go mod tidy\" failed")
+			}
+		}
+	}()
+
+	for _, d := range i.Dependencies {
+		if err := i.executeCommand("go", "get", d); err != nil {
+			return err
+		}
+	}
+
+	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
+	cmd.Dir = i.directory
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+func (i *Injector) executeCommand(name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = i.directory
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
+}
+
+// OpenAPI3Generator injects openapi3 generator into given
+// Goyave project.
+// Returns a plugin having the "GenerateOpenAPI() ([]byte, error)" function.
+func OpenAPI3Generator(directory string) (*plugin.Plugin, error) {
+	call, err := FindRouteRegistrer(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	injector, err := NewInjector(directory)
+	if err != nil {
+		return nil, err
+	}
+	injector.Dependencies = append(injector.Dependencies, "goyave.dev/openapi3")
+
+	// TODO use only what's really needed. For example the openapi part will only be used
+	// by the spec command.
+	imports := []string{
+		"\"fmt\"",
+		"\"goyave.dev/openapi3\"",
+		fmt.Sprintf("\"%s\"", injector.GoyaveImportPath),
+		fmt.Sprintf("\"%s/config\"", injector.GoyaveImportPath),
+	}
+	if callImport := importToString(call.Package); callImport != "" {
+		imports = append(imports, callImport)
+	}
+
+	bodyFormat := `
+	if err := config.LoadFrom("%s/config.json"); err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	router := goyave.NewRouter()
+	%s(router)
+	return router`
+	injector.File = File{
+		Package: "main",
+		Imports: imports,
+		Functions: []Function{
+			{
+				Name:        "InjectedRouteRegistrer",
+				ReturnTypes: []string{"*goyave.Router"},
+				Body:        fmt.Sprintf(bodyFormat, directory, call.Value),
+			},
+			{
+				Name:        "GenerateOpenAPI",
+				ReturnTypes: []string{"[]byte", "error"},
+				Body:        "return openapi3.NewGenerator().Generate(InjectedRouteRegistrer()).MarshalJSON()",
+			},
+		},
+	}
+
+	return injector.Inject()
 }
 
 func importToString(i *ast.ImportSpec) string {
@@ -135,7 +222,7 @@ func FindRouteRegistrer(directory string) (*FunctionCall, error) {
 				return false
 			}
 
-			goyaveImportName := "goyave" // TODO make this more generic
+			goyaveImportName := "goyave" // TODO make this more generic, it is likely we are going to use other functions such as "seeder.Run()"
 			if n := findImportAlias(astFile.Imports, goyaveImportPath); n != "" {
 				goyaveImportName = n
 			}
@@ -239,12 +326,4 @@ func generateTempFileName(parent string) string {
 
 func generatePluginPath() string {
 	return fmt.Sprintf("%s%cgyv-code-injection-%d.go", os.TempDir(), os.PathSeparator, time.Now().Unix())
-}
-
-func buildPlugin(directory, output string) error {
-	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
-	cmd.Dir = directory
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }

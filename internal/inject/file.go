@@ -75,10 +75,10 @@ func (f File) Save(dest string) error {
 
 // Function simple representation of a function for code injection.
 type Function struct {
-	Name         string
-	Parameters   []Parameter
-	ReturnTypes  []string
-	ReturnValues []string
+	Name        string
+	Body        string
+	Parameters  []Parameter
+	ReturnTypes []string
 }
 
 func (f Function) String() string {
@@ -116,15 +116,7 @@ func (f Function) String() string {
 		builder.WriteString(" ")
 	}
 	builder.WriteString("{")
-	if len(f.ReturnValues) > 0 {
-		builder.WriteString("return ")
-	}
-	for i, v := range f.ReturnValues {
-		builder.WriteString(v)
-		if i < len(f.ReturnValues)-1 {
-			builder.WriteString(", ")
-		}
-	}
+	builder.WriteString(f.Body)
 	builder.WriteString("}\n")
 
 	return builder.String()
@@ -138,9 +130,11 @@ func (f Function) len() int {
 	if len(f.Parameters) > 1 {
 		length += (len(f.Parameters) - 1) * 2 // Commas
 	}
+
 	if len(f.ReturnTypes) > 0 {
-		length += 8 // "return " and the space after the return types
+		length++ // the space after the return types
 	}
+
 	for _, t := range f.ReturnTypes {
 		length += len(t)
 	}
@@ -149,12 +143,7 @@ func (f Function) len() int {
 		length += (len(f.ReturnTypes)-1)*2 + 2 // Commas and parenthesis
 	}
 
-	for _, t := range f.ReturnValues {
-		length += len(t)
-	}
-	if len(f.ReturnValues) > 1 {
-		length += (len(f.ReturnValues) - 1) * 2 // Commas
-	}
+	length += len(f.Body)
 
 	return length
 }
