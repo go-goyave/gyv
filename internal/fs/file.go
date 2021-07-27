@@ -38,15 +38,15 @@ func CreateResourceFile(path string, name string, data []byte) error {
 }
 
 // CreateControllerPath generate the path to goyave controllers according to the version
-func CreateControllerPath(controllerName string, projectPath string) (*string, error) {
+func CreateControllerPath(controllerName string, projectPath string) (string, error) {
 	goyaveVersion, err := GetGoyaveVersion(projectPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	upperThan1, err := semver.NewConstraint("> 1.X.X")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var basePath string
@@ -59,10 +59,10 @@ func CreateControllerPath(controllerName string, projectPath string) (*string, e
 	controllerPath := fmt.Sprintf("%s%ccontrollers%c%s", basePath, os.PathSeparator, os.PathSeparator, controllerName)
 	if upperThan1.Check(goyaveVersion) {
 		controllerPath = fmt.Sprintf("%s%ccontroller%c%s", basePath, os.PathSeparator, os.PathSeparator, controllerName)
-		return &controllerPath, nil
+		return controllerPath, nil
 	}
 
-	return &controllerPath, nil
+	return controllerPath, nil
 }
 
 // CreatePath create a directory and its parents if necessary
@@ -92,15 +92,15 @@ func CreateMiddlewarePath(projectPath string) string {
 }
 
 // CreateModelPath generate the path to Goyave models according to the version
-func CreateModelPath(modelName string, projectPath string) (*string, error) {
+func CreateModelPath(modelName string, projectPath string) (string, error) {
 	goyaveVersion, err := GetGoyaveVersion(projectPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	upperThan1, err := semver.NewConstraint("> 1.X.X")
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	var basePath string
@@ -113,10 +113,10 @@ func CreateModelPath(modelName string, projectPath string) (*string, error) {
 	path := fmt.Sprintf("%s%cmodels", basePath, os.PathSeparator)
 	if upperThan1.Check(goyaveVersion) {
 		path = fmt.Sprintf("%s%cmodel", basePath, os.PathSeparator)
-		return &path, nil
+		return path, nil
 	}
 
-	return &path, nil
+	return path, nil
 }
 
 // CopyFile copy file from given source path to given destination path

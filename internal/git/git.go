@@ -119,7 +119,7 @@ func VersionsToStrings(versions []*semver.Version) []string {
 // GetAllTags return all Goyave tags registered inside Github API
 func GetAllTags() ([]Tag, error) {
 	goyaveTagsURL := "https://api.github.com/repos/go-goyave/template/tags"
-	bodyContent, link, err := getHTTPData(&goyaveTagsURL)
+	bodyContent, link, err := getHTTPData(goyaveTagsURL)
 	if err != nil {
 		return nil, err
 	}

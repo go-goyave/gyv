@@ -45,11 +45,11 @@ func Load(name string, data Data) (*bytes.Buffer, error) {
 }
 
 // GenerateStubVersionPath return the path to a stub according to a version
-func GenerateStubVersionPath(path string, version semver.Version) (*string, error) {
+func GenerateStubVersionPath(path string, version *semver.Version) (string, error) {
 	result := fmt.Sprintf("%s%c%s.go.stub", path, os.PathSeparator, "default")
 	lowerThan, err := semver.NewConstraint(fmt.Sprintf("<= %s", version.String()))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	var upperThan *semver.Constraints = nil
 
@@ -98,8 +98,8 @@ func GenerateStubVersionPath(path string, version semver.Version) (*string, erro
 	})
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &result, nil
+	return result, nil
 }

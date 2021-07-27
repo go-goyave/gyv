@@ -75,12 +75,12 @@ func (c *ControllerData) Execute() error {
 		return err
 	}
 
-	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, *goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, goyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	templateData, err := stub.Load(*stubPath, stub.Data{
+	templateData, err := stub.Load(stubPath, stub.Data{
 		"GoyaveModVersion": goyaveModVersion,
 		"ControllerName":   c.ControllerName,
 	})
@@ -88,11 +88,11 @@ func (c *ControllerData) Execute() error {
 		return err
 	}
 
-	if err := fs.CreatePath(*folderPath); err != nil {
+	if err := fs.CreatePath(folderPath); err != nil {
 		return err
 	}
 
-	err = fs.CreateResourceFile(*folderPath, c.ControllerName, templateData.Bytes())
+	err = fs.CreateResourceFile(folderPath, c.ControllerName, templateData.Bytes())
 	if err != nil {
 		return err
 	}

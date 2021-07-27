@@ -67,12 +67,12 @@ func (c *MiddlewareData) Execute() error {
 		return err
 	}
 
-	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, *goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, goyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	templateData, err := stub.Load(*stubPath, stub.Data{
+	templateData, err := stub.Load(stubPath, stub.Data{
 		"GoyaveModVersion": goyaveModVersion,
 		"MiddlewareName":   strings.Title(c.MiddlewareName),
 	})

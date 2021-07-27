@@ -67,12 +67,12 @@ func (c *ModelData) Execute() error {
 		return err
 	}
 
-	stubPath, err := stub.GenerateStubVersionPath(stub.Model, *goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Model, goyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	templateData, err := stub.Load(*stubPath, stub.Data{
+	templateData, err := stub.Load(stubPath, stub.Data{
 		"GoyaveModVersion": goyaveModVersion,
 		"ModelName":        strings.Title(c.ModelName),
 	})
@@ -85,7 +85,7 @@ func (c *ModelData) Execute() error {
 		return err
 	}
 
-	err = fs.CreateResourceFile(*folderPath, c.ModelName, templateData.Bytes())
+	err = fs.CreateResourceFile(folderPath, c.ModelName, templateData.Bytes())
 	if err != nil {
 		return err
 	}
