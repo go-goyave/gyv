@@ -10,8 +10,8 @@ import (
 )
 
 // ProjectNameFromModuleName extract project name from a module name
-func ProjectNameFromModuleName(moduleName *string) string {
-	return strings.Split(*moduleName, "/")[bytes.Count([]byte(*moduleName), []byte("/"))]
+func ProjectNameFromModuleName(moduleName string) string {
+	return strings.Split(moduleName, "/")[bytes.Count([]byte(moduleName), []byte("/"))]
 }
 
 // ReplaceAll replace all default module names or package names with injected values

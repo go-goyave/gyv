@@ -83,7 +83,7 @@ func (c *ProjectData) Execute() error {
 		return err
 	}
 
-	projectName := mod.ProjectNameFromModuleName(&c.ModuleName)
+	projectName := mod.ProjectNameFromModuleName(c.ModuleName)
 
 	info, err := os.Stat(projectName)
 	if info != nil {
