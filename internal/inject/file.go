@@ -63,10 +63,10 @@ func (f File) Save(dest string) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	if _, err := file.WriteString(f.String()); err != nil {
-		os.Remove(dest)
+		_ = os.Remove(dest)
 		return err
 	}
 
