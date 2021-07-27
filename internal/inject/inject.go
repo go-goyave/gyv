@@ -16,6 +16,14 @@ import (
 	"goyave.dev/gyv/internal/fs"
 )
 
+var (
+	minimumGoyaveVersion = semver.MustParse("v3.9.1")
+
+	// ErrUnsupportedGoyaveVersion returned when using NewInjector
+	// with a Goyave project using an outdated version of the framework
+	ErrUnsupportedGoyaveVersion = fmt.Errorf("Unsupported Goyave version. Minimum version: %s", minimumGoyaveVersion.Original())
+)
+
 // FunctionCall is a string representation of a function call or reference
 // with its matching import. Doesn't support functions with parameters.
 type FunctionCall struct {
@@ -46,10 +54,12 @@ func NewInjector(directory string) (*Injector, error) {
 	injector := &Injector{
 		directory: directory,
 	}
-	// TODO minimum Goyave version for this CLI feature
 	goyaveVersion, err := fs.GetGoyaveVersion(directory)
 	if err != nil {
 		return nil, err
+	}
+	if goyaveVersion.LessThan(minimumGoyaveVersion) {
+		return nil, ErrUnsupportedGoyaveVersion
 	}
 	goyaveImportPath, err := fs.GetGoyavePath(directory)
 	if err != nil {
