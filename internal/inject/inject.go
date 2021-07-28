@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
-	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/mod"
 	"goyave.dev/gyv/internal/stub"
 )
 
@@ -58,14 +58,14 @@ func NewInjector(directory string) (*Injector, error) {
 	injector := &Injector{
 		directory: directory,
 	}
-	modFile, err := fs.ParseGoMod(directory)
+	modFile, err := mod.Parse(directory)
 	if err != nil {
 		return nil, err
 	}
 
-	goyaveMod := fs.FindGoyaveRequire(modFile)
+	goyaveMod := mod.FindGoyaveRequire(modFile)
 	if goyaveMod == nil {
-		return nil, fs.ErrNotAGoyaveProject
+		return nil, mod.ErrNotAGoyaveProject
 	}
 	goyaveVersion, err := semver.NewVersion(goyaveMod.Mod.Version)
 	if err != nil {

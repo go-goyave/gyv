@@ -3,7 +3,7 @@ package create
 import (
 	"golang.org/x/mod/modfile"
 	"goyave.dev/gyv/internal/command"
-	"goyave.dev/gyv/internal/fs"
+	"goyave.dev/gyv/internal/mod"
 
 	"github.com/Masterminds/semver"
 	"github.com/spf13/cobra"
@@ -48,19 +48,19 @@ type projectPathCommand struct {
 // The Goyave framework version is parsed and put into the `GoyaveVersion` field.
 func (c *projectPathCommand) setup() error {
 	if c.ProjectPath == "" {
-		c.ProjectPath = fs.FindParentModule()
+		c.ProjectPath = mod.FindParentModule()
 		if c.ProjectPath == "" {
-			return fs.ErrNoGoMod
+			return mod.ErrNoGoMod
 		}
 	}
-	modFile, err := fs.ParseGoMod(c.ProjectPath)
+	modFile, err := mod.Parse(c.ProjectPath)
 	if err != nil {
 		return err
 	}
 
-	c.GoyaveMod = fs.FindGoyaveRequire(modFile)
+	c.GoyaveMod = mod.FindGoyaveRequire(modFile)
 	if c.GoyaveMod == nil {
-		return fs.ErrNotAGoyaveProject
+		return mod.ErrNotAGoyaveProject
 	}
 
 	c.GoyaveVersion, err = semver.NewVersion(c.GoyaveMod.Mod.Version)
