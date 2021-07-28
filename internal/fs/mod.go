@@ -3,13 +3,10 @@ package fs
 import (
 	"errors"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 
-	"github.com/Masterminds/semver"
 	"golang.org/x/mod/modfile"
 )
 
@@ -25,97 +22,9 @@ var (
 
 	// ErrNoGoMod returned when no go.mod file can be found
 	ErrNoGoMod = errors.New("No go.mod found")
+
+	goyaveImportPaths = []string{"goyave.dev/goyave", "github.com/System-Glitch/goyave"}
 )
-
-// IsValidProject check if the directory is a Goyave project
-func IsValidProject(projectPath string) error {
-	if projectPath == "" {
-		return setRootWorkingDirectory()
-	}
-
-	isGoyaveProject, err := isGoyaveProject(projectPath)
-	if err != nil {
-		return err
-	}
-
-	if !isGoyaveProject {
-		return ErrNotAGoyaveProject
-	}
-
-	return nil
-}
-
-func setRootWorkingDirectory() error {
-	sep := string(os.PathSeparator)
-	context, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	haveGomod := false
-
-	for !haveGomod {
-		_, err := os.Stat(context)
-
-		if os.IsPermission(err) {
-			return ErrNoGoMod
-		}
-		if err != nil {
-			return err
-		}
-
-		err = filepath.WalkDir(context, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-
-			info, err := os.Stat(path)
-			if err != nil {
-				return err
-			}
-
-			if info.Name() == "go.mod" {
-				haveGomod = true
-				return nil
-			}
-
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		if !haveGomod {
-			splitedContext := strings.Split(context, sep)
-			contextLength := len(splitedContext) - 1
-			context = strings.Join(splitedContext[:contextLength], sep)
-
-			if contextLength <= 1 {
-				return ErrNoGoMod
-			}
-		}
-
-	}
-
-	return os.Chdir(context)
-}
-
-func isGoyaveProject(projectPath string) (bool, error) {
-	modfile, err := ParseGoMod(projectPath)
-	if err != nil {
-		return false, nil
-	}
-
-	for _, require := range modfile.Require {
-		for _, url := range getGoyaveUrls() {
-			if strings.Contains(require.Mod.Path, url) {
-				return true, nil
-			}
-		}
-	}
-
-	return false, nil
-}
 
 // ParseGoMod reads "go.mod" file from the given directory if it exists.
 func ParseGoMod(directory string) (*modfile.File, error) {
@@ -138,47 +47,74 @@ func ParseGoMod(directory string) (*modfile.File, error) {
 	return modfile, nil
 }
 
-func getGoyaveUrls() []string {
-	return []string{"goyave.dev/goyave", "github.com/System-Glitch/goyave"}
+// FindDependency find the required dependency identified by the given dependencyPath
+// (like "golang.org/x/text" or "rsc.io/quote/v2") in the given modFile requires, or nil.
+func FindDependency(modFile *modfile.File, dependencyPath string) *modfile.Require {
+	for _, d := range modFile.Require {
+		if d.Mod.Path == dependencyPath {
+			return d
+		}
+	}
+	return nil
 }
 
-// GetGoyaveVersion return the goyave version from a go.mod
-func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
-	modfile, err := ParseGoMod(projectPath)
-	if err != nil {
-		return nil, err
+// SetRootWorkingDirectory set the working directory to the nearest
+// directory containing a "go.mod" file (ascending in the directory tree)
+// and return that path.
+// If there is no matching directory, ErrNoGoMod is returned.
+func SetRootWorkingDirectory() (string, error) {
+	projectRoot := FindParentModule()
+	if projectRoot == "" {
+		return "", ErrNoGoMod
 	}
 
-	for _, require := range modfile.Require {
-		for _, url := range getGoyaveUrls() {
-			if strings.Contains(require.Mod.Path, url) {
-				version, err := semver.NewVersion(require.Mod.Version)
-				if err != nil {
-					return nil, err
-				}
+	return projectRoot, os.Chdir(projectRoot)
+}
 
-				return version, nil
+// FindGoyaveRequire find the first Goyave occurrence in the given
+// modFile's requires, or nil.
+func FindGoyaveRequire(modFile *modfile.File) *modfile.Require {
+	for _, d := range modFile.Require {
+		for _, path := range goyaveImportPaths {
+			if strings.HasPrefix(d.Mod.Path, path) {
+				return d
 			}
 		}
 	}
 
-	return nil, ErrNotAGoyaveProject
+	return nil
 }
 
-// GetGoyavePath return goyave module path
-func GetGoyavePath(projectPath string) (string, error) {
-	modfile, err := ParseGoMod(projectPath)
+// FindParentModule tries to find the ascending relative path
+// to the nearest directory containing a "go.mod" file, or an
+// empty string.
+func FindParentModule() string {
+	sep := string(os.PathSeparator)
+	directory, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return ""
 	}
 
-	for _, require := range modfile.Require {
-		for _, url := range getGoyaveUrls() {
-			if strings.Contains(require.Mod.Path, url) {
-				return require.Mod.Path, nil
-			}
+	for !fileExists(fmt.Sprintf("%s%s%s", directory, sep, goModFilename)) {
+		directory = directory[:strings.LastIndex(directory, sep)]
+		if !isDirectory(directory) {
+			return ""
 		}
 	}
 
-	return "", ErrNotAGoyaveProject
+	return directory
+}
+
+func fileExists(name string) bool {
+	if stats, err := os.Stat(goModFilename); err == nil {
+		return !stats.IsDir()
+	}
+	return false
+}
+
+func isDirectory(path string) bool {
+	if stats, err := os.Stat(path); err == nil {
+		return stats.IsDir()
+	}
+	return false
 }

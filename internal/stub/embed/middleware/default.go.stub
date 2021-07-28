@@ -1,6 +1,6 @@
 package middleware
 
-import "{{$.GoyaveModVersion}}"
+import "{{$.GoyaveImportPath}}"
 
 func {{$.MiddlewareName}}(next goyave.Handler) goyave.Handler {
 	return func(response *goyave.Response, request *goyave.Request) {

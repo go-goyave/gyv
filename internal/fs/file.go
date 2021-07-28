@@ -38,12 +38,7 @@ func CreateResourceFile(path string, name string, data []byte) error {
 }
 
 // CreateControllerPath generate the path to goyave controllers according to the version
-func CreateControllerPath(controllerName string, projectPath string) (string, error) {
-	goyaveVersion, err := GetGoyaveVersion(projectPath)
-	if err != nil {
-		return "", err
-	}
-
+func CreateControllerPath(controllerName string, projectPath string, goyaveVersion *semver.Version) (string, error) {
 	upperThan1, err := semver.NewConstraint("> 1.X.X")
 	if err != nil {
 		return "", err
@@ -92,12 +87,7 @@ func CreateMiddlewarePath(projectPath string) string {
 }
 
 // CreateModelPath generate the path to Goyave models according to the version
-func CreateModelPath(modelName string, projectPath string) (string, error) {
-	goyaveVersion, err := GetGoyaveVersion(projectPath)
-	if err != nil {
-		return "", err
-	}
-
+func CreateModelPath(modelName string, projectPath string, goyaveVersion *semver.Version) (string, error) {
 	upperThan1, err := semver.NewConstraint("> 1.X.X")
 	if err != nil {
 		return "", err

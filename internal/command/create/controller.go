@@ -15,8 +15,8 @@ import (
 
 // ControllerData the data injected by the user to generate a controller
 type ControllerData struct {
+	projectPathCommand
 	ControllerName string
-	ProjectPath    string
 }
 
 // BuildCobraCommand builds the cobra command for this action
@@ -53,35 +53,25 @@ func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 
 // Execute the command's behavior
 func (c *ControllerData) Execute() error {
-	if err := fs.IsValidProject(c.ProjectPath); err != nil {
+
+	if err := c.setup(); err != nil {
 		return err
 	}
 
 	// TODO extract actual behavior (excluding validation and visual output)
 	// That would help "front-end" part of the CLI to be swapped with ease.
-	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath)
+	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	// FIXME go.mod is parsed twice
-	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
 	templateData, err := stub.Load(stubPath, stub.Data{
-		"GoyaveModVersion": goyaveModVersion,
+		"GoyaveImportPath": c.GoyaveMod.Mod.Path,
 		"ControllerName":   c.ControllerName,
 	})
 	if err != nil {

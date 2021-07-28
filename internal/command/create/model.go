@@ -16,8 +16,8 @@ import (
 
 // ModelData the data injected by the user to generate a model
 type ModelData struct {
-	ModelName   string
-	ProjectPath string
+	projectPathCommand
+	ModelName string
 }
 
 // BuildCobraCommand builds the cobra command for this action
@@ -53,34 +53,24 @@ func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 
 // Execute the command's behavior
 func (c *ModelData) Execute() error {
-	if err := fs.IsValidProject(c.ProjectPath); err != nil {
+	if err := c.setup(); err != nil {
 		return err
 	}
 
-	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	stubPath, err := stub.GenerateStubVersionPath(stub.Model, goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Model, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
 	templateData, err := stub.Load(stubPath, stub.Data{
-		"GoyaveModVersion": goyaveModVersion,
+		"GoyaveImportPath": c.GoyaveMod.Mod.Path,
 		"ModelName":        strings.Title(c.ModelName),
 	})
 	if err != nil {
 		return err
 	}
 
-	folderPath, err := fs.CreateModelPath(c.ModelName, c.ProjectPath)
+	folderPath, err := fs.CreateModelPath(c.ModelName, c.ProjectPath, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}

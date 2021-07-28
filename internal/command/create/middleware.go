@@ -16,8 +16,8 @@ import (
 
 // MiddlewareData is a structure which represents the data injected by the user to generate a middleware
 type MiddlewareData struct {
+	projectPathCommand
 	MiddlewareName string
-	ProjectPath    string
 }
 
 // BuildCobraCommand builds the cobra command for this action
@@ -53,27 +53,17 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 
 // Execute the command's behavior
 func (c *MiddlewareData) Execute() error {
-	if err := fs.IsValidProject(c.ProjectPath); err != nil {
+	if err := c.setup(); err != nil {
 		return err
 	}
 
-	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, goyaveVersion)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
 	templateData, err := stub.Load(stubPath, stub.Data{
-		"GoyaveModVersion": goyaveModVersion,
+		"GoyaveImportPath": c.GoyaveMod.Mod.Path,
 		"MiddlewareName":   strings.Title(c.MiddlewareName),
 	})
 	if err != nil {

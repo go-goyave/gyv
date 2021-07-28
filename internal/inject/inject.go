@@ -58,20 +58,25 @@ func NewInjector(directory string) (*Injector, error) {
 	injector := &Injector{
 		directory: directory,
 	}
-	goyaveVersion, err := fs.GetGoyaveVersion(directory)
+	modFile, err := fs.ParseGoMod(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	goyaveMod := fs.FindGoyaveRequire(modFile)
+	if goyaveMod == nil {
+		return nil, fs.ErrNotAGoyaveProject
+	}
+	goyaveVersion, err := semver.NewVersion(goyaveMod.Mod.Version)
 	if err != nil {
 		return nil, err
 	}
 	if goyaveVersion.LessThan(minimumGoyaveVersion) {
 		return nil, ErrUnsupportedGoyaveVersion
 	}
-	goyaveImportPath, err := fs.GetGoyavePath(directory)
-	if err != nil {
-		return nil, err
-	}
 
 	injector.GoyaveVersion = goyaveVersion
-	injector.GoyaveImportPath = goyaveImportPath
+	injector.GoyaveImportPath = goyaveMod.Mod.Path
 	return injector, nil
 }
 
@@ -163,15 +168,16 @@ func (i *Injector) writeTemporaryFile(dest string) error {
 // Goyave project.
 // Returns a plugin having the "GenerateOpenAPI() ([]byte, error)" function.
 func OpenAPI3Generator(directory string) (*plugin.Plugin, error) {
-	call, err := FindRouteRegistrer(directory)
-	if err != nil {
-		return nil, err
-	}
-
 	injector, err := NewInjector(directory)
 	if err != nil {
 		return nil, err
 	}
+
+	call, err := FindRouteRegistrer(directory, injector.GoyaveImportPath)
+	if err != nil {
+		return nil, err
+	}
+
 	injector.Dependencies = append(injector.Dependencies, "goyave.dev/openapi3")
 	injector.StubName = stub.InjectOpenAPI
 	injector.StubData = stub.Data{"RouteRegistrerImportPath": importToString(call.Package)}
@@ -193,15 +199,11 @@ func importToString(i *ast.ImportSpec) string {
 // FindRouteRegistrer tries to find the route registrer function from Go files
 // inside the given directory using the Go AST. Sub-directories are not checked.
 // If `goyave.Start()` is found, then the parameter passed to it is assumed to be
-// the main route registrer function. Import aliases are supported.
-func FindRouteRegistrer(directory string) (*FunctionCall, error) {
+// the main route registrer function. Import aliases are supported. To properly identify
+// `goyave.Start()`, this function needs the Goyave import path specified in `go.mod`.
+func FindRouteRegistrer(directory string, goyaveImportPath string) (*FunctionCall, error) {
 	var routeRegister *FunctionCall
 	files, err := findGoFiles(directory)
-	if err != nil {
-		return nil, err
-	}
-
-	goyaveImportPath, err := fs.GetGoyavePath(directory)
 	if err != nil {
 		return nil, err
 	}
