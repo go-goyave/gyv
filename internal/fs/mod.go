@@ -101,7 +101,7 @@ func setRootWorkingDirectory() error {
 }
 
 func isGoyaveProject(projectPath string) (bool, error) {
-	modfile, err := dataFromGoMod(projectPath)
+	modfile, err := ParseGoMod(projectPath)
 	if err != nil {
 		return false, nil
 	}
@@ -117,13 +117,12 @@ func isGoyaveProject(projectPath string) (bool, error) {
 	return false, nil
 }
 
-func dataFromGoMod(projectPath string) (*modfile.File, error) {
-	var goModPath string
+// ParseGoMod reads "go.mod" file from the given directory if it exists.
+func ParseGoMod(directory string) (*modfile.File, error) {
+	goModPath := goModFilename
 
-	if projectPath == "" {
-		goModPath = goModFilename
-	} else {
-		goModPath = fmt.Sprintf("%s%c%s", projectPath, os.PathSeparator, goModFilename)
+	if directory != "" {
+		goModPath = fmt.Sprintf("%s%c%s", directory, os.PathSeparator, goModFilename)
 	}
 
 	data, err := ioutil.ReadFile(goModPath)
@@ -145,7 +144,7 @@ func getGoyaveUrls() []string {
 
 // GetGoyaveVersion return the goyave version from a go.mod
 func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
-	modfile, err := dataFromGoMod(projectPath)
+	modfile, err := ParseGoMod(projectPath)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +167,7 @@ func GetGoyaveVersion(projectPath string) (*semver.Version, error) {
 
 // GetGoyavePath return goyave module path
 func GetGoyavePath(projectPath string) (string, error) {
-	modfile, err := dataFromGoMod(projectPath)
+	modfile, err := ParseGoMod(projectPath)
 	if err != nil {
 		return "", err
 	}
