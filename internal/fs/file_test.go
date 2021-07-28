@@ -2,16 +2,11 @@ package fs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	createPathSample = "parent/child"
 )
 
 func cleanPath(path string) {
@@ -26,41 +21,6 @@ func cleanFile(path string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func TestCreatePath(t *testing.T) {
-	assert := assert.New(t)
-
-	if err := CreatePath(createPathSample); err != nil {
-		log.Fatal(err)
-	}
-
-	assert.DirExists(createPathSample)
-	cleanPath("parent")
-}
-
-func TestCreatePathAlreadyExist(t *testing.T) {
-	assert := assert.New(t)
-	sampleFile := fmt.Sprintf("%s%c%s", createPathSample, os.PathSeparator, "file.go")
-
-	if err := CreatePath(createPathSample); err != nil {
-		assert.FailNow(err.Error())
-	}
-
-	file, err := os.Create(sampleFile)
-	if err != nil {
-		assert.FailNow(err.Error())
-	}
-	assert.Nil(file.Close())
-
-	if err := CreatePath(createPathSample); err != nil {
-		assert.FailNow(err.Error())
-	}
-
-	assert.DirExists(createPathSample)
-	assert.FileExists(sampleFile)
-
-	cleanPath("parent")
 }
 
 func TestCreateMiddlewarePathWithPath(t *testing.T) {
@@ -89,7 +49,7 @@ func TestCreateResourceFileWithPath(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	resultContent, err := ioutil.ReadFile(filePath)
+	resultContent, err := os.ReadFile(filePath)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -108,7 +68,7 @@ func TestCreateResourceFileWithoutPath(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	resultContent, err := ioutil.ReadFile("sample.go")
+	resultContent, err := os.ReadFile("sample.go")
 	if err != nil {
 		log.Fatal(err)
 	}

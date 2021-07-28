@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -55,7 +54,7 @@ func getHTTPData(url string) ([]byte, string, error) {
 	}()
 
 	if response.StatusCode > 299 {
-		data, err := ioutil.ReadAll(response.Body)
+		data, err := io.ReadAll(response.Body)
 		if err != nil {
 			return nil, "", err
 		}
@@ -63,7 +62,7 @@ func getHTTPData(url string) ([]byte, string, error) {
 		return nil, "", fmt.Errorf(string(data))
 	}
 
-	bytes, err := ioutil.ReadAll(response.Body)
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, "", err
 	}
@@ -102,7 +101,7 @@ func DownloadFile(url string, filename string) error {
 	}()
 
 	if response.StatusCode > 299 {
-		data, err := ioutil.ReadAll(response.Body)
+		data, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}

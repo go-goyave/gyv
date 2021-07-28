@@ -78,7 +78,7 @@ func (c *ControllerData) Execute() error {
 		return err
 	}
 
-	if err := fs.CreatePath(folderPath); err != nil {
+	if err := os.MkdirAll(folderPath, 0744); err != nil {
 		return err
 	}
 

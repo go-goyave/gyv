@@ -106,7 +106,7 @@ func (c *ProjectData) Execute() error {
 		return err
 	}
 
-	if err := mod.ReplaceAll(projectName, c.ModuleName); err != nil {
+	if err := fs.ReplaceAll(projectName, c.ModuleName); err != nil {
 		return err
 	}
 

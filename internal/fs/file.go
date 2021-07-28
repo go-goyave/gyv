@@ -2,40 +2,10 @@ package fs
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/Masterminds/semver"
 )
-
-// CreateResourceFile create a resource file from a stub
-func CreateResourceFile(path string, name string, data []byte) error {
-	var filePath string
-	if path == "" {
-		filePath = fmt.Sprintf("%s.go", name)
-	} else {
-		filePath = fmt.Sprintf("%s%c%s.go", path, os.PathSeparator, name)
-		if err := CreatePath(path); err != nil {
-			return err
-		}
-	}
-
-	info, err := os.Stat(filePath)
-	if info != nil {
-		return fmt.Errorf("File already exists")
-	}
-	if !os.IsNotExist(err) {
-		return err
-	}
-
-	err = ioutil.WriteFile(filePath, data, 0644)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 
 // CreateControllerPath generate the path to goyave controllers according to the version
 func CreateControllerPath(controllerName string, projectPath string, goyaveVersion *semver.Version) (string, error) {
@@ -58,23 +28,6 @@ func CreateControllerPath(controllerName string, projectPath string, goyaveVersi
 	}
 
 	return controllerPath, nil
-}
-
-// CreatePath create a directory and its parents if necessary
-func CreatePath(path string) error {
-	info, err := os.Stat(path)
-	if info != nil {
-		return nil
-	}
-	if !os.IsNotExist(err) {
-		return err
-	}
-
-	if err := os.MkdirAll(path, 0744); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // CreateMiddlewarePath generate the path to Goyave middleware according to the version
@@ -107,28 +60,4 @@ func CreateModelPath(modelName string, projectPath string, goyaveVersion *semver
 	}
 
 	return path, nil
-}
-
-// CopyFile copy file from given source path to given destination path
-func CopyFile(source, destination string) error {
-	in, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-
-	out, err := os.Create(destination)
-	if err != nil {
-		_ = in.Close()
-		return err
-	}
-
-	_, err = io.Copy(out, in)
-	if err != nil {
-		_ = in.Close()
-		_ = out.Close()
-		return err
-	}
-
-	_ = in.Close()
-	return out.Close()
 }
