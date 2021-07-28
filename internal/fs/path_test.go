@@ -82,7 +82,6 @@ func TestCreateResourceFileWithoutPath(t *testing.T) {
 func TestCreateResourceFileAlreadyExist(t *testing.T) {
 	assert := assert.New(t)
 	content := "this a sample file\nIt's use for test"
-	errorContent := "File already exists"
 
 	if err := CreateResourceFile("", "sample", []byte(content)); err != nil {
 		log.Fatal(err)
@@ -91,7 +90,7 @@ func TestCreateResourceFileAlreadyExist(t *testing.T) {
 	err := CreateResourceFile("", "sample", []byte(content))
 
 	assert.NotNil(err)
-	assert.Equal(errorContent, fmt.Sprintf("%s", err))
+	assert.Equal("open sample.go: file exists", fmt.Sprintf("%s", err))
 
 	cleanFile("sample.go")
 }
