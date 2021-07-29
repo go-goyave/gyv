@@ -16,7 +16,7 @@ import (
 
 // MiddlewareData is a structure which represents the data injected by the user to generate a middleware
 type MiddlewareData struct {
-	projectPathCommand
+	command.ProjectPathCommand
 	MiddlewareName string
 }
 
@@ -53,7 +53,7 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 
 // Execute the command's behavior
 func (c *MiddlewareData) Execute() error {
-	if err := c.setup(); err != nil {
+	if err := c.Setup(); err != nil {
 		return err
 	}
 

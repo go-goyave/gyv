@@ -16,7 +16,7 @@ import (
 
 // ModelData the data injected by the user to generate a model
 type ModelData struct {
-	projectPathCommand
+	command.ProjectPathCommand
 	ModelName string
 }
 
@@ -53,7 +53,7 @@ func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 
 // Execute the command's behavior
 func (c *ModelData) Execute() error {
-	if err := c.setup(); err != nil {
+	if err := c.Setup(); err != nil {
 		return err
 	}
 

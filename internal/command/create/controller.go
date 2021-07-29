@@ -15,7 +15,7 @@ import (
 
 // ControllerData the data injected by the user to generate a controller
 type ControllerData struct {
-	projectPathCommand
+	command.ProjectPathCommand
 	ControllerName string
 }
 
@@ -54,7 +54,7 @@ func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 // Execute the command's behavior
 func (c *ControllerData) Execute() error {
 
-	if err := c.setup(); err != nil {
+	if err := c.Setup(); err != nil {
 		return err
 	}
 
