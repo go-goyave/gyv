@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/semver"
+	"golang.org/x/mod/modfile"
 	"goyave.dev/gyv/internal/mod"
 	"goyave.dev/gyv/internal/stub"
 )
@@ -36,6 +37,7 @@ type FunctionCall struct {
 // the project's root, build the project in plugin mode and return a Plugin instance.
 type Injector struct {
 	directory        string
+	ModFile          *modfile.File
 	GoyaveImportPath string
 	GoyaveVersion    *semver.Version
 
@@ -77,6 +79,7 @@ func NewInjector(directory string) (*Injector, error) {
 
 	injector.GoyaveVersion = goyaveVersion
 	injector.GoyaveImportPath = goyaveMod.Mod.Path
+	injector.ModFile = modFile
 	return injector, nil
 }
 
@@ -101,25 +104,27 @@ func (i *Injector) build(output string) error {
 	if err := i.writeTemporaryFile(fileName); err != nil {
 		return err
 	}
+
+	dependencies := i.getDependencies()
+
 	defer func() {
 		fmt.Println("🧹 Cleanup")
 		if err := os.Remove(fileName); err != nil {
 			fmt.Println("⚠️ WARNING: could not delete temporary code injection file", fileName)
 			return
 		}
-		for _, d := range i.Dependencies {
-			// FIXME check dependencies before editing go.mod. There may be no need to add a dependency, thus no need to remove neither
+		for _, d := range dependencies {
 			if err := i.executeCommand("go", "mod", "edit", fmt.Sprintf("-droprequire=%s", d)); err != nil {
 				fmt.Printf("⚠️ WARNING: could not drop \"%s\" mod requirement\n", d)
 			}
-			// Remove go.sum unused entries
-			if err := i.executeCommand("go", "mod", "tidy"); err != nil {
-				fmt.Println("⚠️ WARNING: \"go mod tidy\" failed")
-			}
+		}
+		// Remove go.sum unused entries
+		if err := i.executeCommand("go", "mod", "tidy"); err != nil {
+			fmt.Println("⚠️ WARNING: \"go mod tidy\" failed")
 		}
 	}()
 
-	for _, d := range i.Dependencies {
+	for _, d := range dependencies {
 		if err := i.executeCommand("go", "get", d); err != nil {
 			return err
 		}
@@ -131,6 +136,16 @@ func (i *Injector) build(output string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+func (i *Injector) getDependencies() []string {
+	dependencies := make([]string, 0, len(i.Dependencies))
+	for _, d := range i.Dependencies {
+		if mod.FindDependency(i.ModFile, d) == nil {
+			dependencies = append(dependencies, d)
+		}
+	}
+	return dependencies
 }
 
 func (i *Injector) executeCommand(name string, args ...string) error {
