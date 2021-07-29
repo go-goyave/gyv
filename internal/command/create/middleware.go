@@ -14,6 +14,9 @@ import (
 	"goyave.dev/gyv/internal/stub"
 )
 
+// TODO rename all commands having "Data" in their name because it doesn't
+// correctly represent what they actually are.
+
 // MiddlewareData is a structure which represents the data injected by the user to generate a middleware
 type MiddlewareData struct {
 	command.ProjectPathCommand
@@ -40,12 +43,12 @@ If project-path is not specified, the nearest directory containing a go.mod file
 func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
-			Name:     "middlewareName",
+			Name:     "MiddlewareName",
 			Prompt:   &survey.Input{Message: "Middleware name"},
 			Validate: survey.Required,
 		},
 		{
-			Name:   "projectPath",
+			Name:   "ProjectPath",
 			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil

@@ -40,12 +40,12 @@ If project-path is not specified, the nearest directory containing a go.mod file
 func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
-			Name:     "controllerName",
+			Name:     "ControllerName",
 			Prompt:   &survey.Input{Message: "Controller name"},
 			Validate: survey.Required,
 		},
 		{
-			Name:   "projectPath",
+			Name:   "ProjectPath",
 			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil
@@ -103,15 +103,13 @@ func (c *ControllerData) Validate() error {
 
 // UsedFlags checks if flags are used
 func (c *ControllerData) UsedFlags() bool {
-	controllerNameCheck := false
-
 	for _, arg := range os.Args[1:] {
 		if arg == "--name" || arg == "-n" {
-			controllerNameCheck = true
+			return true
 		}
 	}
 
-	return controllerNameCheck
+	return false
 }
 
 func (c *ControllerData) setFlags(flags *pflag.FlagSet) {

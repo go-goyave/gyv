@@ -40,12 +40,12 @@ If project-path is not specified, the nearest directory containing a go.mod file
 func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
-			Name:     "modelName",
+			Name:     "ModelName",
 			Prompt:   &survey.Input{Message: "Model name"},
 			Validate: survey.Required,
 		},
 		{
-			Name:   "projectPath",
+			Name:   "ProjectPath",
 			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil

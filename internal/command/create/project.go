@@ -154,7 +154,7 @@ func (c *ProjectData) Validate() error {
 }
 
 // UsedFlags check if flags are used
-func (c *ProjectData) UsedFlags() bool {
+func (c *ProjectData) UsedFlags() bool { // TODO this is redundant and could just use cobra flags
 	for _, arg := range os.Args[1:] {
 		if arg == "--module-name" || arg == "-n" {
 			return true

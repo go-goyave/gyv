@@ -56,19 +56,6 @@ func FindDependency(modFile *modfile.File, dependencyPath string) *modfile.Requi
 	return nil
 }
 
-// SetRootWorkingDirectory set the working directory to the nearest
-// directory containing a "go.mod" file (ascending in the directory tree)
-// and return that path.
-// If there is no matching directory, ErrNoGoMod is returned.
-func SetRootWorkingDirectory() (string, error) {
-	projectRoot := FindParentModule()
-	if projectRoot == "" {
-		return "", ErrNoGoMod
-	}
-
-	return projectRoot, os.Chdir(projectRoot)
-}
-
 // FindGoyaveRequire find the first Goyave occurrence in the given
 // modFile's requires, or nil.
 func FindGoyaveRequire(modFile *modfile.File) *modfile.Require {

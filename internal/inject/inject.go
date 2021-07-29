@@ -179,27 +179,10 @@ func (i *Injector) writeTemporaryFile(dest string) error {
 	return file.Close()
 }
 
-// OpenAPI3Generator injects openapi3 generator into given
-// Goyave project.
-// Returns a plugin having the "GenerateOpenAPI() ([]byte, error)" function.
-func OpenAPI3Generator(directory string) (*plugin.Plugin, error) {
-	injector, err := NewInjector(directory)
-	if err != nil {
-		return nil, err
-	}
-
-	call, err := FindRouteRegistrer(directory, injector.GoyaveImportPath)
-	if err != nil {
-		return nil, err
-	}
-
-	injector.Dependencies = append(injector.Dependencies, "goyave.dev/openapi3")
-	injector.StubName = stub.InjectOpenAPI
-	injector.StubData = stub.Data{"RouteRegistrerImportPath": importToString(call.Package)}
-	return injector.Inject()
-}
-
-func importToString(i *ast.ImportSpec) string {
+// ImportToString convert *ast.ImportSpec to a valid import
+// statement (without prepending "import "), supporting aliases.
+// If the given *ast.ImportSpec is nil, an empty string is returned.
+func ImportToString(i *ast.ImportSpec) string {
 	if i == nil {
 		return ""
 	}

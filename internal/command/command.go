@@ -54,7 +54,7 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 type ProjectPathCommand struct {
 	GoyaveMod     *modfile.Require
 	GoyaveVersion *semver.Version
-	ProjectPath   string
+	ProjectPath   string // FIXME promoted fields currently don't work with survey library
 }
 
 // Setup ensure the `ProjectPath` field is correctly set.
