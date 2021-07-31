@@ -113,11 +113,6 @@ func (i *Injector) build(output string) error {
 			fmt.Println("⚠️ WARNING: could not delete temporary code injection file", fileName)
 			return
 		}
-		for _, d := range dependencies {
-			if err := i.executeCommand("go", "mod", "edit", fmt.Sprintf("-droprequire=%s", d)); err != nil {
-				fmt.Printf("⚠️ WARNING: could not drop \"%s\" mod requirement\n", d)
-			}
-		}
 		// Remove go.sum unused entries
 		if err := i.executeCommand("go", "mod", "tidy"); err != nil {
 			fmt.Println("⚠️ WARNING: \"go mod tidy\" failed")
@@ -130,8 +125,7 @@ func (i *Injector) build(output string) error {
 		}
 	}
 
-	// TODO building can be long, does it use cache? Probably not due to timestamp in file name
-	cmd := exec.Command("go", "build", "-buildmode=plugin", "-o", output)
+	cmd := exec.Command("go", "build", "-ldflags", "-w -s", "-buildmode=plugin", "-o", output)
 	cmd.Dir = i.directory
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

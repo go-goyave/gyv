@@ -53,7 +53,7 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 type ProjectPathCommand struct {
 	GoyaveMod     *modfile.Require
 	GoyaveVersion *semver.Version
-	ProjectPath   string // FIXME promoted fields currently don't work with survey library
+	ProjectPath   string // FIXME promoted fields currently don't work with survey library, see https://github.com/AlecAivazis/survey/pull/366
 }
 
 // Setup ensure the `ProjectPath` field is correctly set.
@@ -86,3 +86,4 @@ func (c *ProjectPathCommand) Setup() error {
 }
 
 // TODO projectPathCommand could also contain cobra flags and survey
+// would require command revamp that would generate both survey and cobra flags from a single flag definition
