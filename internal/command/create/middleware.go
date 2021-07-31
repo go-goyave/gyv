@@ -13,17 +13,14 @@ import (
 	"goyave.dev/gyv/internal/stub"
 )
 
-// TODO rename all commands having "Data" in their name because it doesn't
-// correctly represent what they actually are.
-
-// MiddlewareData is a structure which represents the data injected by the user to generate a middleware
-type MiddlewareData struct {
+// Middleware command for model generation
+type Middleware struct {
 	command.ProjectPathCommand
 	MiddlewareName string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *MiddlewareData) BuildCobraCommand() *cobra.Command {
+func (c *Middleware) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "middleware",
 		Short: "Create a Goyave middleware",
@@ -39,7 +36,7 @@ If project-path is not specified, the nearest directory containing a go.mod file
 }
 
 // BuildSurvey builds a survey for this action
-func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
+func (c *Middleware) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "MiddlewareName",
@@ -54,7 +51,7 @@ func (c *MiddlewareData) BuildSurvey() ([]*survey.Question, error) {
 }
 
 // Execute the command's behavior
-func (c *MiddlewareData) Execute() error {
+func (c *Middleware) Execute() error {
 	if err := c.Setup(); err != nil {
 		return err
 	}
@@ -85,7 +82,7 @@ func (c *MiddlewareData) Execute() error {
 }
 
 // Validate is a function which check if required flags are definded
-func (c *MiddlewareData) Validate() error {
+func (c *Middleware) Validate() error {
 	if c.MiddlewareName == "" {
 		return errors.New("❌ required flag \"name\"")
 	}
@@ -93,7 +90,7 @@ func (c *MiddlewareData) Validate() error {
 	return nil
 }
 
-func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {
+func (c *Middleware) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.MiddlewareName,
 		"name",

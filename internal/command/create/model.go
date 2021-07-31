@@ -13,14 +13,14 @@ import (
 	"goyave.dev/gyv/internal/stub"
 )
 
-// ModelData the data injected by the user to generate a model
-type ModelData struct {
+// Model command for model generation
+type Model struct {
 	command.ProjectPathCommand
 	ModelName string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *ModelData) BuildCobraCommand() *cobra.Command {
+func (c *Model) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "model",
 		Short: "Create a Goyave model",
@@ -36,7 +36,7 @@ If project-path is not specified, the nearest directory containing a go.mod file
 }
 
 // BuildSurvey builds a survey for this action
-func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
+func (c *Model) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "ModelName",
@@ -51,7 +51,7 @@ func (c *ModelData) BuildSurvey() ([]*survey.Question, error) {
 }
 
 // Execute the command's behavior
-func (c *ModelData) Execute() error {
+func (c *Model) Execute() error {
 	if err := c.Setup(); err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func (c *ModelData) Execute() error {
 }
 
 // Validate checks if required flags are definded
-func (c *ModelData) Validate() error {
+func (c *Model) Validate() error {
 	if c.ModelName == "" {
 		return errors.New("❌ required flag \"name\"")
 	}
@@ -93,7 +93,7 @@ func (c *ModelData) Validate() error {
 	return nil
 }
 
-func (c *ModelData) setFlags(flags *pflag.FlagSet) {
+func (c *Model) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModelName,
 		"name",

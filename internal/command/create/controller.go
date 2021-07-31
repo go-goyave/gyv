@@ -13,14 +13,14 @@ import (
 	"goyave.dev/gyv/internal/stub"
 )
 
-// ControllerData the data injected by the user to generate a controller
-type ControllerData struct {
+// Controller command for controller generation
+type Controller struct {
 	command.ProjectPathCommand
 	ControllerName string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *ControllerData) BuildCobraCommand() *cobra.Command {
+func (c *Controller) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "controller",
 		Short: "Create a Goyave controller",
@@ -37,7 +37,7 @@ If project-path is not specified, the nearest directory containing a go.mod file
 }
 
 // BuildSurvey builds a survey for this action
-func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
+func (c *Controller) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
 			Name:     "ControllerName",
@@ -52,7 +52,7 @@ func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
 }
 
 // Execute the command's behavior
-func (c *ControllerData) Execute() error {
+func (c *Controller) Execute() error {
 
 	if err := c.Setup(); err != nil {
 		return err
@@ -93,7 +93,7 @@ func (c *ControllerData) Execute() error {
 }
 
 // Validate checks if required flags are definded
-func (c *ControllerData) Validate() error {
+func (c *Controller) Validate() error {
 	if c.ControllerName == "" {
 		return errors.New("required flag(s) \"name\"")
 	}
@@ -101,7 +101,7 @@ func (c *ControllerData) Validate() error {
 	return nil
 }
 
-func (c *ControllerData) setFlags(flags *pflag.FlagSet) {
+func (c *Controller) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ControllerName,
 		"name",
