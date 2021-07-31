@@ -43,19 +43,11 @@ func (c *Model) BuildSurvey() ([]*survey.Question, error) {
 			Prompt:   &survey.Input{Message: "Model name"},
 			Validate: survey.Required,
 		},
-		{
-			Name:   "ProjectPath",
-			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
-		},
 	}, nil
 }
 
 // Execute the command's behavior
 func (c *Model) Execute() error {
-	if err := c.Setup(); err != nil {
-		return err
-	}
-
 	stubPath, err := stub.GenerateStubVersionPath(stub.Model, c.GoyaveVersion)
 	if err != nil {
 		return err

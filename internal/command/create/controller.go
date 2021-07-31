@@ -44,19 +44,11 @@ func (c *Controller) BuildSurvey() ([]*survey.Question, error) {
 			Prompt:   &survey.Input{Message: "Controller name"},
 			Validate: survey.Required,
 		},
-		{
-			Name:   "ProjectPath",
-			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
-		},
 	}, nil
 }
 
 // Execute the command's behavior
 func (c *Controller) Execute() error {
-
-	if err := c.Setup(); err != nil {
-		return err
-	}
 
 	// TODO extract actual behavior (excluding validation and visual output)
 	// That would help "front-end" part of the CLI to be swapped with ease.
@@ -84,6 +76,7 @@ func (c *Controller) Execute() error {
 
 	err = fs.CreateResourceFile(folderPath, c.ControllerName, templateData.Bytes())
 	if err != nil {
+		// TODO better error messages
 		return err
 	}
 

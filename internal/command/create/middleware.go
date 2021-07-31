@@ -43,19 +43,11 @@ func (c *Middleware) BuildSurvey() ([]*survey.Question, error) {
 			Prompt:   &survey.Input{Message: "Middleware name"},
 			Validate: survey.Required,
 		},
-		{
-			Name:   "ProjectPath",
-			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
-		},
 	}, nil
 }
 
 // Execute the command's behavior
 func (c *Middleware) Execute() error {
-	if err := c.Setup(); err != nil {
-		return err
-	}
-
 	stubPath, err := stub.GenerateStubVersionPath(stub.Middleware, c.GoyaveVersion)
 	if err != nil {
 		return err

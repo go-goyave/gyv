@@ -43,10 +43,6 @@ func (c *OpenAPI) BuildSurvey() ([]*survey.Question, error) {
 			},
 			Validate: survey.Required,
 		},
-		{
-			Name:   "ProjectPath",
-			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
-		},
 	}, nil
 }
 
@@ -54,10 +50,6 @@ func (c *OpenAPI) BuildSurvey() ([]*survey.Question, error) {
 func (c *OpenAPI) Execute() error {
 	if c.Output == "" {
 		c.Output = "openapi.json"
-	}
-
-	if err := c.Setup(); err != nil {
-		return err
 	}
 
 	plug, err := inject.OpenAPI3Generator(c.ProjectPath)

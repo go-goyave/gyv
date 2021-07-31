@@ -11,7 +11,7 @@ import (
 	"goyave.dev/gyv/internal/mod"
 )
 
-// Command is a interface which represents the actions possible for the commands
+// Command minimal command definition.
 type Command interface {
 	Execute() error
 	Validate() error
@@ -19,19 +19,38 @@ type Command interface {
 	BuildCobraCommand() *cobra.Command
 }
 
+// SetupCommand for commands needing to execute some logic
+// before being executed. If a command implements "Setup()",
+// this function will be called first, before surveys and validation.
+type SetupCommand interface {
+	// Setup returns the number of flags consumed by the setup operation.
+	Setup() (int, error)
+}
+
 // GenerateRunFunc generic cobra handler
 // If all required flags are set, the command's specific behavior is executed.
 // Otherwise a survey is launched for allow the user to inject the data
 func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if cmd.Flags().NFlag() == 0 {
+		consumedFlags := 0
+		if c, ok := c.(SetupCommand); ok {
+			consumed, err := c.Setup()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "❌ %s\n", err.Error())
+				return nil
+			}
+			consumedFlags += consumed
+		}
+		if cmd.Flags().NFlag()-consumedFlags == 0 { // FIXME doesn't work if project-path is set
 			questions, err := c.BuildSurvey()
 			if err != nil {
-				return err
+				fmt.Fprintf(os.Stderr, "❌ %s\n", err.Error())
+				return nil
 			}
 
 			if err := survey.Ask(questions, c); err != nil {
-				return err
+				fmt.Fprintf(os.Stderr, "❌ %s\n", err.Error())
+				return nil
 			}
 
 		} else if err := c.Validate(); err != nil {
@@ -50,10 +69,12 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 // using a Goyave project path.
 // All commands compositing with this one should call "setup()"
 // first in their "Execute()" function.
+// Commands using ProjectPathCommand should have a project path flag
+// and survey entry.
 type ProjectPathCommand struct {
 	GoyaveMod     *modfile.Require
 	GoyaveVersion *semver.Version
-	ProjectPath   string // FIXME promoted fields currently don't work with survey library, see https://github.com/AlecAivazis/survey/pull/366
+	ProjectPath   string
 }
 
 // Setup ensure the `ProjectPath` field is correctly set.
@@ -61,29 +82,26 @@ type ProjectPathCommand struct {
 // will be set to `fs.FindParentModule()`.
 // The project's `go.mod` file is parsed and put into the `GoyaveMod` field.
 // The Goyave framework version is parsed and put into the `GoyaveVersion` field.
-func (c *ProjectPathCommand) Setup() error {
+func (c *ProjectPathCommand) Setup() (int, error) {
 	if c.ProjectPath == "" {
 		c.ProjectPath = mod.FindParentModule()
 		if c.ProjectPath == "" {
-			return mod.ErrNoGoMod
+			return 1, mod.ErrNoGoMod
 		}
 	}
 	modFile, err := mod.Parse(c.ProjectPath)
 	if err != nil {
-		return err
+		return 1, err
 	}
 
 	c.GoyaveMod = mod.FindGoyaveRequire(modFile)
 	if c.GoyaveMod == nil {
-		return mod.ErrNotAGoyaveProject
+		return 1, mod.ErrNotAGoyaveProject
 	}
 
 	c.GoyaveVersion, err = semver.NewVersion(c.GoyaveMod.Mod.Version)
 	if err != nil {
-		return err
+		return 1, err
 	}
-	return nil
+	return 1, nil
 }
-
-// TODO projectPathCommand could also contain cobra flags and survey
-// would require command revamp that would generate both survey and cobra flags from a single flag definition
