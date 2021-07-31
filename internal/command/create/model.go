@@ -3,7 +3,6 @@ package create
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -92,17 +91,6 @@ func (c *ModelData) Validate() error {
 	}
 
 	return nil
-}
-
-// UsedFlags checks if flags are used
-func (c *ModelData) UsedFlags() bool {
-	for _, arg := range os.Args[1:] {
-		if arg == "--name" || arg == "-n" {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (c *ModelData) setFlags(flags *pflag.FlagSet) {

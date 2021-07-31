@@ -100,18 +100,6 @@ func (c *OpenAPI) Validate() error {
 	return nil
 }
 
-// UsedFlags is a function which check if flags are used
-func (c *OpenAPI) UsedFlags() bool {
-	for _, arg := range os.Args[1:] {
-		// FIXME double-dash arguments with "=" syntax are not recognized here
-		if arg == "--output" || arg == "-o" || arg == "-p" || arg == "--project-path" {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (c *OpenAPI) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.Output,

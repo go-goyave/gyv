@@ -15,7 +15,6 @@ import (
 type Command interface {
 	Execute() error
 	Validate() error
-	UsedFlags() bool
 	BuildSurvey() ([]*survey.Question, error)
 	BuildCobraCommand() *cobra.Command
 }
@@ -24,8 +23,8 @@ type Command interface {
 // If all required flags are set, the command's specific behavior is executed.
 // Otherwise a survey is launched for allow the user to inject the data
 func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
-	return func(*cobra.Command, []string) error {
-		if !c.UsedFlags() {
+	return func(cmd *cobra.Command, args []string) error {
+		if cmd.Flags().NFlag() == 0 {
 			questions, err := c.BuildSurvey()
 			if err != nil {
 				return err

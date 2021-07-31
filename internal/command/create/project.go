@@ -153,21 +153,6 @@ func (c *ProjectData) Validate() error {
 	return nil
 }
 
-// UsedFlags check if flags are used
-func (c *ProjectData) UsedFlags() bool { // TODO this is redundant and could just use cobra flags
-	for _, arg := range os.Args[1:] {
-		if arg == "--module-name" || arg == "-n" {
-			return true
-		}
-
-		if arg == "--goyave-version" || arg == "-g" {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (c *ProjectData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModuleName,

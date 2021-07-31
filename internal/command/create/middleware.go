@@ -3,7 +3,6 @@ package create
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -92,17 +91,6 @@ func (c *MiddlewareData) Validate() error {
 	}
 
 	return nil
-}
-
-// UsedFlags is a function which check if flags are used
-func (c *MiddlewareData) UsedFlags() bool {
-	for _, arg := range os.Args[1:] {
-		if arg == "--name" || arg == "-n" {
-			return true
-		}
-	}
-
-	return false
 }
 
 func (c *MiddlewareData) setFlags(flags *pflag.FlagSet) {

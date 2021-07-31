@@ -101,17 +101,6 @@ func (c *ControllerData) Validate() error {
 	return nil
 }
 
-// UsedFlags checks if flags are used
-func (c *ControllerData) UsedFlags() bool {
-	for _, arg := range os.Args[1:] {
-		if arg == "--name" || arg == "-n" {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (c *ControllerData) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ControllerName,
