@@ -17,7 +17,6 @@ func Seeder(directory string, seeders []string) (func() error, error) {
 
 	injector.StubName = stub.InjectSeeder
 
-	// TODO if seeder returns error
 	// TODO add main.go blank imports
 	injector.StubData = stub.Data{
 		"BlankImports":     []string{"goyave.dev/goyave/v3/database/dialect/sqlite"},

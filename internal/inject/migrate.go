@@ -14,8 +14,6 @@ func Migrate(directory string) (func() error, error) {
 
 	injector.StubName = stub.InjectMigrate
 
-	// TODO if seeder returns error
-	// TODO add main.go blank imports
 	injector.StubData = stub.Data{
 		"ModelImportPath": modelImportPath,
 	}

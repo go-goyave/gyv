@@ -7,11 +7,22 @@ import (
 	_ "{{.}}"{{end}}
 )
 
-func Seed() error {
-	if err := config.Load(); err != nil {
-		return err
+func Seed() (err error) {
+	if configErr := config.Load(); configErr != nil {
+		err = configErr
+		return
 	}
+	panicked := true
+	defer func() {
+		if panicReason := recover(); panicReason != nil || panicked {
+			if e, ok := panicReason.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%v", panicReason)
+			}
+		}
+	}()
 	{{range .Seeders}}
 	{{$.SeederPackage}}.{{.}}(){{end}}
-	return nil
+	return err
 }

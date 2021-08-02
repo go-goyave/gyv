@@ -94,8 +94,6 @@ func (c *Seed) Execute() error {
 		}
 	}
 
-	// TODO if seeder returns error
-	// TODO handle panics
 	seed, err := inject.Seeder(c.ProjectPath, c.Seeders)
 	if err != nil {
 		return err
