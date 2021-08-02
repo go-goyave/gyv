@@ -1,0 +1,28 @@
+package main
+
+import (
+	"fmt"
+	"{{$.GoyaveImportPath}}/config"
+	"{{$.GoyaveImportPath}}/database"
+	_ "{{$.ModelImportPath}}"
+)
+
+func Migrate() (err error) {
+	if configErr := config.Load(); configErr != nil {
+		configErr = err
+		return
+	}
+	panicked := true
+	defer func() {
+		if panicReason := recover(); panicReason != nil || panicked {
+			if e, ok := panicReason.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%v", panicReason)
+			}
+		}
+	}()
+	database.Migrate()
+	panicked = false
+	return err
+}

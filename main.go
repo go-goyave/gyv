@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/spf13/cobra"
 	"goyave.dev/gyv/internal/command/create"
+	"goyave.dev/gyv/internal/command/db"
 	"goyave.dev/gyv/internal/command/openapi"
 )
 
@@ -17,6 +18,7 @@ All commands can be run either in interactive mode or using POSIX flags.`,
 
 	commands := []*cobra.Command{
 		create.BuildCommand(),
+		db.BuildCommand(),
 		(&openapi.OpenAPI{}).BuildCobraCommand(),
 	}
 

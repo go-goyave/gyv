@@ -25,12 +25,16 @@ const (
 	Model = "embed/model"
 	// Inject is the path to the inject stubs
 	Inject = "embed/inject"
-	// InjectOpenAPI is the path the injected OpenAPI generator stub
+	// InjectOpenAPI is the path to the injected OpenAPI generator stub
 	InjectOpenAPI = Inject + "/openapi.go.stub"
+	// InjectSeeder is the path to the injected database seed function
+	InjectSeeder = Inject + "/seed.go.stub"
+	// InjectMigrate is the path to the injected database migration function
+	InjectMigrate = Inject + "/migrate.go.stub"
 )
 
 // Data represent the data to inject inside stub files
-type Data map[string]string
+type Data map[string]interface{}
 
 // Load load a stub file with injected data
 func Load(name string, data Data) (*bytes.Buffer, error) {

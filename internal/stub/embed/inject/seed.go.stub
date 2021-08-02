@@ -1,0 +1,17 @@
+package main
+
+import (
+	"{{$.GoyaveImportPath}}/config"
+	"{{$.SeederImportPath}}"
+	{{range .BlankImports}}
+	_ "{{.}}"{{end}}
+)
+
+func Seed() error {
+	if err := config.Load(); err != nil {
+		return err
+	}
+	{{range .Seeders}}
+	{{$.SeederPackage}}.{{.}}(){{end}}
+	return nil
+}

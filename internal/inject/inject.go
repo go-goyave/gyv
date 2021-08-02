@@ -155,7 +155,7 @@ func (i *Injector) writeTemporaryFile(dest string) error {
 	for k, v := range i.StubData {
 		data[k] = v
 	}
-	s, err := stub.Load(stub.InjectOpenAPI, data)
+	s, err := stub.Load(i.StubName, data)
 	if err != nil {
 		return err
 	}
