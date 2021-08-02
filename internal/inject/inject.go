@@ -188,6 +188,40 @@ func ImportToString(i *ast.ImportSpec) string {
 	return str + i.Path.Value
 }
 
+// FindExportedFunctions find all exported functions in given directory.
+func FindExportedFunctions(directory string) ([]string, error) {
+	functions := make([]string, 0, 5)
+	files, err := findGoFiles(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, f := range files {
+		src, err := os.ReadFile(f)
+		if err != nil {
+			return nil, err
+		}
+
+		fset := token.NewFileSet()
+
+		astFile, err := parser.ParseFile(fset, filepath.Base(f), src, parser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+
+		ast.Inspect(astFile, func(n ast.Node) bool {
+			fn, ok := n.(*ast.FuncDecl)
+			if ok && fn.Recv == nil && fn.Type.Results == nil && fn.Type.Params.List == nil && fn.Name.IsExported() {
+				functions = append(functions, fn.Name.Name)
+				return false
+			}
+			return true
+		})
+	}
+
+	return functions, nil
+}
+
 // FindRouteRegistrer tries to find the route registrer function from Go files
 // inside the given directory using the Go AST. Sub-directories are not checked.
 // If `goyave.Start()` is found, then the parameter passed to it is assumed to be
