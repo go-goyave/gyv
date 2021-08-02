@@ -52,12 +52,7 @@ func (c *OpenAPI) Execute() error {
 		c.Output = "openapi.json"
 	}
 
-	plug, err := inject.OpenAPI3Generator(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	s, err := plug.Lookup("GenerateOpenAPI")
+	generator, err := inject.OpenAPI3Generator(c.ProjectPath)
 	if err != nil {
 		return err
 	}
@@ -69,7 +64,7 @@ func (c *OpenAPI) Execute() error {
 	if err := os.Chdir(c.ProjectPath); err != nil {
 		return err
 	}
-	spec, err := s.(func() ([]byte, error))()
+	spec, err := generator()
 	if err1 := os.Chdir(wd); err1 != nil && err == nil {
 		err = err1
 	}
