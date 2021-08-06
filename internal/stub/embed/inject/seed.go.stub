@@ -1,10 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"{{$.GoyaveImportPath}}/config"
 	"{{$.SeederImportPath}}"
 	{{range .BlankImports}}
-	_ "{{.}}"{{end}}
+	_ {{.}}{{end}}
 )
 
 func Seed() (err error) {
@@ -24,5 +25,6 @@ func Seed() (err error) {
 	}()
 	{{range .Seeders}}
 	{{$.SeederPackage}}.{{.}}(){{end}}
+	panicked = false
 	return err
 }

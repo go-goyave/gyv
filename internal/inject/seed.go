@@ -17,9 +17,13 @@ func Seeder(directory string, seeders []string) (func() error, error) {
 
 	injector.StubName = stub.InjectSeeder
 
-	// TODO add main.go blank imports
+	blankImports, err := GetBlankImports(directory)
+	if err != nil {
+		return nil, err
+	}
+
 	injector.StubData = stub.Data{
-		"BlankImports":     []string{"goyave.dev/goyave/v3/database/dialect/sqlite"},
+		"BlankImports":     blankImports,
 		"SeederImportPath": seederImportPath,
 		"SeederPackage":    path.Base(seederImportPath),
 		"Seeders":          seeders,
