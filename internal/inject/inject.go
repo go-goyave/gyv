@@ -244,7 +244,6 @@ func GetBlankImports(directory string) ([]string, error) {
 
 		for _, i := range astFile.Imports {
 			if i.Name != nil && i.Name.Name == "_" {
-				fmt.Println(i.Path.Value)
 				imports = append(imports, i.Path.Value)
 			}
 		}

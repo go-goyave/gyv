@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"{{$.GoyaveImportPath}}/config"
+	"{{$.GoyaveImportPath}}/database"
 	"{{$.SeederImportPath}}"
 	{{range .BlankImports}}
 	_ {{.}}{{end}}
@@ -23,6 +24,9 @@ func Seed() (err error) {
 			}
 		}
 	}()
+	if config.GetBool("database.autoMigrate") {
+		database.Migrate()
+	}
 	{{range .Seeders}}
 	{{$.SeederPackage}}.{{.}}(){{end}}
 	panicked = false
