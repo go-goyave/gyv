@@ -35,6 +35,11 @@ gyv create model --name "user"
 # Create a new middleware named "Auth"
 gyv create middleware --name "auth"
 
+# Database operations
+gyv db migrate
+gyv db seed
+gyv db clear
+
 # Generate OpenAPI3 specification of your application
 gyv openapi
 ```
