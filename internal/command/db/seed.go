@@ -52,11 +52,7 @@ func (c *Seed) Setup() (int, error) {
 	}
 
 	sort.SliceStable(functions, func(i, j int) bool {
-		if functions[i] == "Run" {
-			return true
-		}
-
-		return false
+		return functions[i] == "Run"
 	})
 	c.ExportedFunctions = functions
 	return consumedFlags, nil

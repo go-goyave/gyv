@@ -61,7 +61,7 @@ func GenerateStubVersionPath(path string, version *semver.Version) (string, erro
 	if err != nil {
 		return "", err
 	}
-	var upperThan *semver.Constraints = nil
+	var upperThan *semver.Constraints
 
 	err = fs.WalkDir(stubFolder, path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {

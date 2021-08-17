@@ -53,11 +53,7 @@ func ReplaceAll(projectName string, moduleName string) error {
 			contents = strings.ReplaceAll(contents, name, replaceValue)
 		}
 
-		if err := os.WriteFile(path, []byte(contents), 0644); err != nil {
-			return err
-		}
-
-		return nil
+		return os.WriteFile(path, []byte(contents), 0644)
 	})
 }
 
