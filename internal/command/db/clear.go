@@ -11,7 +11,7 @@ import (
 	"goyave.dev/gyv/internal/inject"
 )
 
-// Migrate command for running auto migrations.
+// Clear command for clearing database tables.
 type Clear struct {
 	command.ProjectPathCommand
 }

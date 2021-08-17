@@ -222,6 +222,8 @@ func FindExportedFunctions(directory string) ([]string, error) {
 	return functions, nil
 }
 
+// GetBlankImports returns all blank imports ("_") found in go files
+// in the given directory. Doesn't check sub-directories.
 func GetBlankImports(directory string) ([]string, error) {
 	imports := make([]string, 0, 5)
 	files, err := findGoFiles(directory)
@@ -282,7 +284,7 @@ func FindRouteRegistrer(directory string, goyaveImportPath string) (*FunctionCal
 				return false
 			}
 
-			goyaveImportName := "goyave" // TODO make this more generic, it is likely we are going to use other functions such as "seeder.Run()"
+			goyaveImportName := "goyave"
 			if n := findImportAlias(astFile.Imports, goyaveImportPath); n != "" {
 				goyaveImportName = n
 			}
