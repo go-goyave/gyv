@@ -23,10 +23,20 @@ const (
 	Middleware = "embed/middleware"
 	// Model is the path to model stubs
 	Model = "embed/model"
+	// Inject is the path to the inject stubs
+	Inject = "embed/inject"
+	// InjectOpenAPI is the path to the injected OpenAPI generator stub
+	InjectOpenAPI = Inject + "/openapi.go.stub"
+	// InjectSeeder is the path to the injected database seed function
+	InjectSeeder = Inject + "/seed.go.stub"
+	// InjectMigrate is the path to the injected database migration function
+	InjectMigrate = Inject + "/migrate.go.stub"
+	// InjectDBClear is the path to the injected database clear function
+	InjectDBClear = Inject + "/db_clear.go.stub"
 )
 
 // Data represent the data to inject inside stub files
-type Data map[string]string
+type Data map[string]interface{}
 
 // Load load a stub file with injected data
 func Load(name string, data Data) (*bytes.Buffer, error) {
@@ -45,13 +55,13 @@ func Load(name string, data Data) (*bytes.Buffer, error) {
 }
 
 // GenerateStubVersionPath return the path to a stub according to a version
-func GenerateStubVersionPath(path string, version semver.Version) (*string, error) {
+func GenerateStubVersionPath(path string, version *semver.Version) (string, error) {
 	result := fmt.Sprintf("%s%c%s.go.stub", path, os.PathSeparator, "default")
 	lowerThan, err := semver.NewConstraint(fmt.Sprintf("<= %s", version.String()))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	var upperThan *semver.Constraints = nil
+	var upperThan *semver.Constraints
 
 	err = fs.WalkDir(stubFolder, path, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -98,8 +108,8 @@ func GenerateStubVersionPath(path string, version semver.Version) (*string, erro
 	})
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &result, nil
+	return result, nil
 }

@@ -1,7 +1,7 @@
 package {{$.ControllerName}}
 
 import (
-	"{{$.GoyaveModVersion}}"
+	"{{$.GoyaveImportPath}}"
 )
 
 func Handler(response *goyave.Response, request *goyave.Request) {

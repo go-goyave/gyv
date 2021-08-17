@@ -13,14 +13,14 @@ import (
 	"goyave.dev/gyv/internal/stub"
 )
 
-// ControllerData the data injected by the user to generate a controller
-type ControllerData struct {
+// Controller command for controller generation
+type Controller struct {
+	command.ProjectPathCommand
 	ControllerName string
-	ProjectPath    string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *ControllerData) BuildCobraCommand() *cobra.Command {
+func (c *Controller) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "controller",
 		Short: "Create a Goyave controller",
@@ -37,60 +37,46 @@ If project-path is not specified, the nearest directory containing a go.mod file
 }
 
 // BuildSurvey builds a survey for this action
-func (c *ControllerData) BuildSurvey() ([]*survey.Question, error) {
+func (c *Controller) BuildSurvey() ([]*survey.Question, error) {
 	return []*survey.Question{
 		{
-			Name:     "controllerName",
+			Name:     "ControllerName",
 			Prompt:   &survey.Input{Message: "Controller name"},
 			Validate: survey.Required,
-		},
-		{
-			Name:   "projectPath",
-			Prompt: &survey.Input{Message: "Project path (leave empty for auto-detect)"},
 		},
 	}, nil
 }
 
 // Execute the command's behavior
-func (c *ControllerData) Execute() error {
-	if err := fs.IsValidProject(c.ProjectPath); err != nil {
-		return err
-	}
+func (c *Controller) Execute() error {
 
-	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath)
+	// TODO extract actual behavior (excluding validation and visual output)
+	// That would help "front-end" part of the CLI to be swapped with ease.
+	folderPath, err := fs.CreateControllerPath(c.ControllerName, c.ProjectPath, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	goyaveModVersion, err := fs.GetGoyavePath(c.ProjectPath)
+	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, c.GoyaveVersion)
 	if err != nil {
 		return err
 	}
 
-	goyaveVersion, err := fs.GetGoyaveVersion(c.ProjectPath)
-	if err != nil {
-		return err
-	}
-
-	stubPath, err := stub.GenerateStubVersionPath(stub.Controller, *goyaveVersion)
-	if err != nil {
-		return err
-	}
-
-	templateData, err := stub.Load(*stubPath, stub.Data{
-		"GoyaveModVersion": *goyaveModVersion,
+	templateData, err := stub.Load(stubPath, stub.Data{
+		"GoyaveImportPath": c.GoyaveMod.Mod.Path,
 		"ControllerName":   c.ControllerName,
 	})
 	if err != nil {
 		return err
 	}
 
-	if err := fs.CreatePath(*folderPath); err != nil {
+	if err := os.MkdirAll(folderPath, 0744); err != nil {
 		return err
 	}
 
-	err = fs.CreateResourceFile(*folderPath, c.ControllerName, templateData.Bytes())
+	err = fs.CreateResourceFile(folderPath, c.ControllerName, templateData.Bytes())
 	if err != nil {
+		// TODO better error messages
 		return err
 	}
 
@@ -100,7 +86,7 @@ func (c *ControllerData) Execute() error {
 }
 
 // Validate checks if required flags are definded
-func (c *ControllerData) Validate() error {
+func (c *Controller) Validate() error {
 	if c.ControllerName == "" {
 		return errors.New("required flag(s) \"name\"")
 	}
@@ -108,20 +94,7 @@ func (c *ControllerData) Validate() error {
 	return nil
 }
 
-// UsedFlags checks if flags are used
-func (c *ControllerData) UsedFlags() bool {
-	controllerNameCheck := false
-
-	for _, arg := range os.Args[1:] {
-		if arg == "--name" || arg == "-n" {
-			controllerNameCheck = true
-		}
-	}
-
-	return controllerNameCheck
-}
-
-func (c *ControllerData) setFlags(flags *pflag.FlagSet) {
+func (c *Controller) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ControllerName,
 		"name",

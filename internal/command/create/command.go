@@ -15,10 +15,10 @@ func BuildCommand() *cobra.Command {
 	}
 
 	commands := []command.Command{
-		&ProjectData{},
-		&ControllerData{},
-		&MiddlewareData{},
-		&ModelData{},
+		&Project{},
+		&Controller{},
+		&Middleware{},
+		&Model{},
 	}
 
 	for _, c := range commands {

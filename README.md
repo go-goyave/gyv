@@ -22,11 +22,21 @@ go install goyave.dev/gyv@latest
 
 ## Usage
 
-```
+```sh
+# Create a new project
 gyv create project
+
+# Create a new controller named "hello"
 gyv create controller --name "hello"
+
+# Create a new model named "User"
 gyv create model --name "user"
+
+# Create a new middleware named "Auth"
 gyv create middleware --name "auth"
+
+# Generate OpenAPI3 specification of your application
+gyv openapi
 ```
 
 ## License

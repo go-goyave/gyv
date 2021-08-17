@@ -1,0 +1,34 @@
+package main
+
+import (
+	"fmt"
+	"{{$.GoyaveImportPath}}/config"
+	"{{$.GoyaveImportPath}}/database"
+	"{{$.SeederImportPath}}"
+	{{range .BlankImports}}
+	_ {{.}}{{end}}
+)
+
+func Seed() (err error) {
+	if configErr := config.Load(); configErr != nil {
+		err = configErr
+		return
+	}
+	panicked := true
+	defer func() {
+		if panicReason := recover(); panicReason != nil || panicked {
+			if e, ok := panicReason.(error); ok {
+				err = e
+			} else {
+				err = fmt.Errorf("%v", panicReason)
+			}
+		}
+	}()
+	if config.GetBool("database.autoMigrate") {
+		database.Migrate()
+	}
+	{{range .Seeders}}
+	{{$.SeederPackage}}.{{.}}(){{end}}
+	panicked = false
+	return err
+}

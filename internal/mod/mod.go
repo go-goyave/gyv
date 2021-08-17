@@ -2,78 +2,109 @@ package mod
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
+
+	"golang.org/x/mod/modfile"
 )
 
-// ProjectNameFromModuleName extract project name from a module name
-func ProjectNameFromModuleName(moduleName *string) string {
-	return strings.Split(*moduleName, "/")[bytes.Count([]byte(*moduleName), []byte("/"))]
-}
+const (
+	goModFilename = "go.mod"
+)
 
-// ReplaceAll replace all default module names or package names with injected values
-func ReplaceAll(projectName string, moduleName string) error {
-	if err := replaceProjectModuleName(projectName, moduleName); err != nil {
-		return err
+var (
+	// ErrNotAGoyaveProject returned when the go project found doesn't import Goyave
+	ErrNotAGoyaveProject = errors.New("Current project doesn't import Goyave")
+
+	// ErrNoGoMod returned when no go.mod file can be found
+	ErrNoGoMod = errors.New("No go.mod found")
+
+	goyaveImportPaths = []string{"goyave.dev/goyave", "github.com/System-Glitch/goyave"}
+)
+
+// Parse reads "go.mod" file from the given directory if it exists.
+func Parse(directory string) (*modfile.File, error) {
+	goModPath := goModFilename
+
+	if directory != "" {
+		goModPath = fmt.Sprintf("%s%c%s", directory, os.PathSeparator, goModFilename)
 	}
-	if err := replaceGoModPackageName(projectName, moduleName); err != nil {
-		return err
-	}
 
-	return nil
-}
-
-func replaceProjectModuleName(projectName string, moduleName string) error {
-	return filepath.Walk(projectName, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		bytes, err := ioutil.ReadFile(path)
-		if err != nil {
-			return err
-		}
-
-		result := string(bytes)
-		for _, defaulValue := range defaultTemplateValues() {
-			result = strings.ReplaceAll(result, defaulValue, moduleName)
-
-		}
-
-		if err := ioutil.WriteFile(path, []byte(result), 0644); err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-func defaultTemplateValues() []string {
-	return []string{"goyave.dev/template", "goyave_template"}
-}
-
-func replaceGoModPackageName(projectName string, moduleName string) error {
-	goModPath := fmt.Sprintf(".%c%s%cgo.mod", os.PathSeparator, projectName, os.PathSeparator)
-	goModBytes, err := ioutil.ReadFile(goModPath)
+	data, err := os.ReadFile(goModPath)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	result := string(goModBytes)
-	for _, defaultValue := range defaultTemplateValues() {
-		result = strings.ReplaceAll(result, fmt.Sprintf("module %s", defaultValue), fmt.Sprintf("module %s", moduleName))
+	modfile, err := modfile.Parse(fmt.Sprintf("%s%c%s", goModPath, os.PathSeparator, goModFilename), data, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := ioutil.WriteFile(goModPath, []byte(result), 0644); err != nil {
-		return err
+	return modfile, nil
+}
+
+// FindDependency find the required dependency identified by the given dependencyPath
+// (like "golang.org/x/text" or "rsc.io/quote/v2") in the given modFile requires, or nil.
+func FindDependency(modFile *modfile.File, dependencyPath string) *modfile.Require {
+	for _, d := range modFile.Require {
+		if d.Mod.Path == dependencyPath {
+			return d
+		}
+	}
+	return nil
+}
+
+// FindGoyaveRequire find the first Goyave occurrence in the given
+// modFile's requires, or nil.
+func FindGoyaveRequire(modFile *modfile.File) *modfile.Require {
+	for _, d := range modFile.Require {
+		for _, path := range goyaveImportPaths {
+			if strings.HasPrefix(d.Mod.Path, path) {
+				return d
+			}
+		}
 	}
 
 	return nil
+}
+
+// FindParentModule tries to find the ascending relative path
+// to the nearest directory containing a "go.mod" file, or an
+// empty string.
+func FindParentModule() string {
+	sep := string(os.PathSeparator)
+	directory, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+
+	for !fileExists(fmt.Sprintf("%s%s%s", directory, sep, goModFilename)) {
+		directory = directory[:strings.LastIndex(directory, sep)]
+		if !isDirectory(directory) {
+			return ""
+		}
+	}
+
+	return directory
+}
+
+func fileExists(name string) bool {
+	if stats, err := os.Stat(goModFilename); err == nil {
+		return !stats.IsDir()
+	}
+	return false
+}
+
+func isDirectory(path string) bool {
+	if stats, err := os.Stat(path); err == nil {
+		return stats.IsDir()
+	}
+	return false
+}
+
+// ProjectNameFromModuleName extract project name from a module name
+func ProjectNameFromModuleName(moduleName string) string {
+	return strings.Split(moduleName, "/")[bytes.Count([]byte(moduleName), []byte("/"))]
 }

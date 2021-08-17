@@ -19,14 +19,14 @@ const (
 	defaultZipFileName = "goyave_template.zip"
 )
 
-// ProjectData the data injected by the user to generate a goyave project
-type ProjectData struct {
+// Project command for project generation
+type Project struct {
 	GoyaveVersion string
 	ModuleName    string
 }
 
 // BuildCobraCommand builds the cobra command for this action
-func (c *ProjectData) BuildCobraCommand() *cobra.Command {
+func (c *Project) BuildCobraCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "project",
 		Short: "Create a Goyave project",
@@ -42,7 +42,7 @@ The flags --module-name and --goyave-version are required.`,
 }
 
 // BuildSurvey builds a survey for this action
-func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
+func (c *Project) BuildSurvey() ([]*survey.Question, error) {
 	tags, err := git.GetAllTags()
 	if err != nil {
 		return nil, err
@@ -77,13 +77,13 @@ func (c *ProjectData) BuildSurvey() ([]*survey.Question, error) {
 }
 
 // Execute the command's behavior
-func (c *ProjectData) Execute() error {
+func (c *Project) Execute() error {
 	tags, err := git.GetAllTags()
 	if err != nil {
 		return err
 	}
 
-	projectName := mod.ProjectNameFromModuleName(&c.ModuleName)
+	projectName := mod.ProjectNameFromModuleName(c.ModuleName)
 
 	info, err := os.Stat(projectName)
 	if info != nil {
@@ -106,7 +106,7 @@ func (c *ProjectData) Execute() error {
 		return err
 	}
 
-	if err := mod.ReplaceAll(projectName, c.ModuleName); err != nil {
+	if err := fs.ReplaceAll(projectName, c.ModuleName); err != nil {
 		return err
 	}
 
@@ -145,7 +145,7 @@ func (c *ProjectData) Execute() error {
 }
 
 // Validate check if required flags are definded
-func (c *ProjectData) Validate() error {
+func (c *Project) Validate() error {
 	if c.GoyaveVersion == "" || c.ModuleName == "" {
 		return errors.New("required flag(s) \"goyave-version\" and \"module-name\" aren't set")
 	}
@@ -153,22 +153,7 @@ func (c *ProjectData) Validate() error {
 	return nil
 }
 
-// UsedFlags check if flags are used
-func (c *ProjectData) UsedFlags() bool {
-	for _, arg := range os.Args[1:] {
-		if arg == "--module-name" || arg == "-n" {
-			return true
-		}
-
-		if arg == "--goyave-version" || arg == "-g" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func (c *ProjectData) setFlags(flags *pflag.FlagSet) {
+func (c *Project) setFlags(flags *pflag.FlagSet) {
 	flags.StringVarP(
 		&c.ModuleName,
 		"module-name",

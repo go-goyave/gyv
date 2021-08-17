@@ -3,7 +3,6 @@ package git
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -25,8 +24,8 @@ var (
 	GitClient HTTPClient = &http.Client{Timeout: 30 * time.Second}
 )
 
-func getLinksData(bodyList [][]byte, link *string) ([][]byte, error) {
-	if link == nil {
+func getLinksData(bodyList [][]byte, link string) ([][]byte, error) {
+	if link == "" {
 		return bodyList, nil
 	}
 
@@ -38,15 +37,15 @@ func getLinksData(bodyList [][]byte, link *string) ([][]byte, error) {
 	return getLinksData(append(bodyList, bytes), link)
 }
 
-func getHTTPData(url *string) ([]byte, *string, error) {
-	request, err := http.NewRequest("GET", *url, nil)
+func getHTTPData(url string) ([]byte, string, error) {
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
 	response, err := GitClient.Do(request)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 	defer func() {
 		if err := response.Body.Close(); err != nil {
@@ -55,39 +54,33 @@ func getHTTPData(url *string) ([]byte, *string, error) {
 	}()
 
 	if response.StatusCode > 299 {
-		data, err := ioutil.ReadAll(response.Body)
+		data, err := io.ReadAll(response.Body)
 		if err != nil {
-			return nil, nil, err
+			return nil, "", err
 		}
 
-		return nil, nil, fmt.Errorf(string(data))
+		return nil, "", fmt.Errorf(string(data))
 	}
 
-	bytes, err := ioutil.ReadAll(response.Body)
+	bytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, nil, err
+		return nil, "", err
 	}
 
-	nextPage := getNextPageURL(strings.Join(response.Header.Values("Link"), ""))
-
-	if nextPage != nil {
-		return bytes, nextPage, nil
-	}
-
-	return bytes, nil, nil
+	return bytes, getNextPageURL(strings.Join(response.Header.Values("Link"), "")), nil
 
 }
 
-func getNextPageURL(rawLinks string) *string {
+func getNextPageURL(rawLinks string) string {
 	links := linkheader.Parse(rawLinks)
 
 	for _, link := range links {
 		if link.Rel == "next" {
-			return &link.URL
+			return link.URL
 		}
 	}
 
-	return nil
+	return ""
 }
 
 // DownloadFile download a file from given URL and writes it to the given filename
@@ -108,7 +101,7 @@ func DownloadFile(url string, filename string) error {
 	}()
 
 	if response.StatusCode > 299 {
-		data, err := ioutil.ReadAll(response.Body)
+		data, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
