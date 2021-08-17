@@ -31,6 +31,8 @@ const (
 	InjectSeeder = Inject + "/seed.go.stub"
 	// InjectMigrate is the path to the injected database migration function
 	InjectMigrate = Inject + "/migrate.go.stub"
+	// InjectDBClear is the path to the injected database clear function
+	InjectDBClear = Inject + "/db_clear.go.stub"
 )
 
 // Data represent the data to inject inside stub files

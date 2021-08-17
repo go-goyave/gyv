@@ -16,6 +16,7 @@ func BuildCommand() *cobra.Command {
 
 	commands := []command.Command{
 		&Migrate{},
+		&Clear{},
 		&Seed{},
 	}
 
