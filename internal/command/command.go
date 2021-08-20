@@ -42,8 +42,7 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 			consumedFlags += consumed
 		}
 
-		// FIXME seed command doesn't work properly if project path isn't specified
-		if cmd.Flags().NFlag()-consumedFlags == 0 { // FIXME doesn't work if project-path is set
+		if cmd.Flags().NFlag()-consumedFlags == 0 {
 			questions, err := c.BuildSurvey()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "❌ %s\n", err.Error())
