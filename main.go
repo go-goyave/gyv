@@ -10,7 +10,7 @@ import (
 func buildRootCommand() *cobra.Command {
 	gyv := &cobra.Command{
 		Use:     "gyv",
-		Version: "0.1.0", // TODO use ldflags to set version at compile-time
+		Version: "0.2.1", // TODO use ldflags to set version at compile-time
 		Short:   "Productivity CLI for the Goyave framework",
 		Long: `gyv productivity command-line interface for the Goyave framework.
 All commands can be run either in interactive mode or using POSIX flags.`,

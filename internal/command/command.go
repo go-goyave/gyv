@@ -41,6 +41,8 @@ func GenerateRunFunc(c Command) func(*cobra.Command, []string) error {
 			}
 			consumedFlags += consumed
 		}
+
+		// FIXME seed command doesn't work properly if project path isn't specified
 		if cmd.Flags().NFlag()-consumedFlags == 0 { // FIXME doesn't work if project-path is set
 			questions, err := c.BuildSurvey()
 			if err != nil {
@@ -78,30 +80,32 @@ type ProjectPathCommand struct {
 }
 
 // Setup ensure the `ProjectPath` field is correctly set.
-// If `ProjectPath` is empty at the time `setup()` is called, its value
+// If `ProjectPath` is empty at the time `Setup()` is called, its value
 // will be set to `fs.FindParentModule()`.
 // The project's `go.mod` file is parsed and put into the `GoyaveMod` field.
 // The Goyave framework version is parsed and put into the `GoyaveVersion` field.
 func (c *ProjectPathCommand) Setup() (int, error) {
+	consumedFlags := 1
 	if c.ProjectPath == "" {
+		consumedFlags = 0
 		c.ProjectPath = mod.FindParentModule()
 		if c.ProjectPath == "" {
-			return 1, mod.ErrNoGoMod
+			return consumedFlags, mod.ErrNoGoMod
 		}
 	}
 	modFile, err := mod.Parse(c.ProjectPath)
 	if err != nil {
-		return 1, err
+		return consumedFlags, err
 	}
 
 	c.GoyaveMod = mod.FindGoyaveRequire(modFile)
 	if c.GoyaveMod == nil {
-		return 1, mod.ErrNotAGoyaveProject
+		return consumedFlags, mod.ErrNotAGoyaveProject
 	}
 
 	c.GoyaveVersion, err = semver.NewVersion(c.GoyaveMod.Mod.Version)
 	if err != nil {
-		return 1, err
+		return consumedFlags, err
 	}
-	return 1, nil
+	return consumedFlags, nil
 }
