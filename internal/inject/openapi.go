@@ -1,6 +1,7 @@
 package inject
 
 import (
+	"github.com/Masterminds/semver"
 	"goyave.dev/gyv/internal/stub"
 )
 
@@ -17,7 +18,11 @@ func OpenAPI3Generator(directory string) (func() ([]byte, error), error) {
 		return nil, err
 	}
 
-	injector.Dependencies = append(injector.Dependencies, "goyave.dev/openapi3")
+	libVersion := ""
+	if c, _ := semver.NewConstraint("< v4.0.0-rc1"); c.Check(injector.GoyaveVersion) {
+		libVersion = "v0.1.0"
+	}
+	injector.Dependencies = append(injector.Dependencies, Dependency{"goyave.dev/openapi3", libVersion})
 	injector.StubName = stub.InjectOpenAPI
 	injector.StubData = stub.Data{"RouteRegistrerImportPath": ImportToString(call.Package)}
 

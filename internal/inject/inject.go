@@ -33,6 +33,15 @@ type FunctionCall struct {
 	Value   string
 }
 
+// Dependency a library that needs to be imported for the planned injection.
+type Dependency struct {
+	// Name of the dependency (e.g.: "goyave.dev/goyave/v4")
+	Name string
+
+	// Version of the dependency (e.g.: "v4.0.0"). Leave empty for latest.
+	Version string
+}
+
 // Injector code injector for Goyave projects. Builds a temporary source file at
 // the project's root, build the project in plugin mode and return a Plugin instance.
 type Injector struct {
@@ -50,7 +59,7 @@ type Injector struct {
 	// Dependencies list of libraries that need to be imported
 	// for the planned injection. These libraries will be added
 	// automatically using "go get" and removed after the build is complete.
-	Dependencies []string
+	Dependencies []Dependency
 }
 
 // NewInjector create a new injector for the project in the given directory.
@@ -120,7 +129,11 @@ func (i *Injector) build(output string) error {
 	}()
 
 	for _, d := range dependencies {
-		if err := i.executeCommand("go", "get", d); err != nil {
+		dep := d.Name
+		if d.Version != "" {
+			dep += "@" + d.Version
+		}
+		if err := i.executeCommand("go", "get", dep); err != nil {
 			return err
 		}
 	}
@@ -132,10 +145,10 @@ func (i *Injector) build(output string) error {
 	return cmd.Run()
 }
 
-func (i *Injector) getDependencies() []string {
-	dependencies := make([]string, 0, len(i.Dependencies))
+func (i *Injector) getDependencies() []Dependency {
+	dependencies := make([]Dependency, 0, len(i.Dependencies))
 	for _, d := range i.Dependencies {
-		if mod.FindDependency(i.ModFile, d) == nil {
+		if mod.FindDependency(i.ModFile, d.Name) == nil {
 			dependencies = append(dependencies, d)
 		}
 	}
